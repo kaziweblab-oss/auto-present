@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 
 import style from "./footer.module.css";
 
-import appLogo from "../../assets/Gemini_Generated_Image_xuexouxuexouxuex.png";
+import appLogo from "../../assets/appLogo.png";
 
 import { handelSignUpBtn } from "../../utils/helper";
 

@@ -1,0 +1,6 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-height: 95vh;
+}

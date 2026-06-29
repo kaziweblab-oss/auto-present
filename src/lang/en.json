@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "linkChange": "Change Sheet LInk",
+    "logOut": "Log Out",
+    "loginBtn": "Log In",
+    "howtologin": "how to login",
+    "howtoSignIn": "how to Sign In"
+  },
+
+  "footer": {
+    "appName": "Auto Present",
+    "appDetails": "A simple solution to automatically and accurately take class attendance through Google Sheets.",
+    "copyRight": {
+      "message1": "© 2026 Auto Present. All rights reserved.",
+      "message2": "Made with ❤️ by Kazi Tasin Hossen"
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "logIn": "Log In",
+      "logOut": "Log Out",
+      "l1": "Fix Permission",
+      "l2": "How to Use"
+    },
+    "support": {
+      "tite": "Support &amp; Help",
+      "l1": "Support E-mail",
+      "l2": "Report a Bug",
+      "l3": "Watch Tutorial"
+    },
+    "policy": {
+      "title": "Legal of Policy",
+      "l1": "Terms of Service",
+      "l2": "Privacy Policy"
+    }
+  },
+
+  "home": {
+    "welcome": "Welcome",
+    "institute": "Barguna Polytechnic Institute",
+    "department": "Department of Computer Science and Technology",
+    "signUpBtn": "সাইন আপ করুন",
+    "massage": "This is an Attendance App that is only usable for the Computer Science and Technology (CST) Department."
+  },
+
+  "signin": {
+    "massage": "Sign in to Google with the email address that has editor access to your class Google Sheet.",
+    "btn": "Sign in with Google",
+    "hook": {
+      "acessMessage": "Access denied! Please fix the permissions.",
+      "fail": "Google login failed.",
+      "sucess": "Login successful!",
+      "sucessBtn": "Go to Login Page",
+      "dataNotFound": "User profile data not found"
+    }
+  },
+
+  "fixIssue": {
+    "issue": "You don't check the edit permission. Please see this video for resolve this Issue : ",
+    "fixBtn": "Fix This Issue",
+    "backBtn": "Back to Login"
+  },
+
+  "login": {
+    "messages": {
+      "pastLinDenied": "Permission to paste link from clipboard not granted. Please paste manually.",
+      "sessionClearMessage": "Session cleared. You can log in again with the correct permissions.",
+      "loadingFailMessage": "There was a problem loading the sheet. Check your internet connection and permissions.",
+      "sheetNotFoundMessage": "The sheet could not be found. Please verify that your link is correct.",
+      "acessDeniedMessage": "You do not have access to edit this sheet. Please contact (CI) to obtain 'Editor' permission.",
+      "wrongMailMessage": "You do not have access to edit the sheet at this email. Please use the correct email.",
+      "linkFalseMessage": "The link is incorrect. Please provide a link to a valid Google Sheet.",
+      "acessCheckingMessage": "Checking Google Sheets access and subject code...",
+      "editAcessCheckinMessage": "Verifying edit permissions...",
+      "linkBLankErrorMessage": "Please provide a link to a Google Sheet.",
+      "acessLimitMessage": "You do not have sufficient permissions. Please reset your session and log in again.",
+      "successMessage": "Successful! Entering dashboard..."
+    },
+    "text": {
+      "loginAs": "Logged in as : ",
+      "inputMessage": "Enter your sheet link."
+    },
+    "verify": {
+      "verifying": "Verifying...",
+      "loading": "Verify & Load Subjects"
+    }
+  }
+}

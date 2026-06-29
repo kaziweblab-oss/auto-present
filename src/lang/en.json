@@ -2,9 +2,10 @@
   "nav": {
     "linkChange": "Change Sheet LInk",
     "logOut": "Log Out",
+    "signInBtn": "Sign In",
     "loginBtn": "Log In",
-    "howtologin": "how to login",
-    "howtoSignIn": "how to Sign In"
+    "howtologin": "How to login",
+    "howtoSignIn": "How to Sign In"
   },
 
   "footer": {
@@ -16,13 +17,13 @@
     },
     "quickLinks": {
       "title": "Quick Links",
-      "logIn": "Log In",
+      "logIn": "Sign In",
       "logOut": "Log Out",
       "l1": "Fix Permission",
       "l2": "How to Use"
     },
     "support": {
-      "tite": "Support &amp; Help",
+      "tite": "Support & Help",
       "l1": "Support E-mail",
       "l2": "Report a Bug",
       "l3": "Watch Tutorial"
@@ -83,5 +84,16 @@
       "verifying": "Verifying...",
       "loading": "Verify & Load Subjects"
     }
+  },
+
+  "dashboard": {
+    "title": "Attendance Input",
+    "subjectCodeTitle": "Select Subjects : ",
+    "subjectCodeMessage": "Select subject code...",
+    "dateTitle": "Select Date :",
+    "rollInputTitle": "Present Rolls :",
+    "rollInputMessage": "Type Roll and Press Enter or Space",
+    "btnMessage": "Submit Attendance to Sheet",
+    "btnLoadingMessage": "Updating Sheet..."
   }
 }

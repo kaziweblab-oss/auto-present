@@ -6,29 +6,28 @@ import { extractId } from "../../utils/helper";
 import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 
-//import icons here
+// import icons here
 import { MdOutlineCancel } from "react-icons/md";
 import { RiResetLeftFill } from "react-icons/ri";
 
-//import functions here
+// import functions here
 import { loginSuccess, logoutSuccess } from "../../app/states/authSlice";
 
-//import image here
+// import image here
 import image from "../../assets/Gemini_Generated_Image_8duj9s8duj9s8duj.png";
 
-//import langueages Here
+// import languages Here
 import bn from "../../lang/bn.json";
 import en from "../../lang/en.json";
 
-const langueges: Record<string, typeof en> = { en, bn };
+const languages: Record<string, typeof en> = { en, bn };
 
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const currentLan = useSelector((state: any) => state.langueageR.lang);
-
-  const t = langueges[currentLan].login;
+  const t = languages[currentLan].login;
 
   const [sheetLink, setSheetLink] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -47,15 +46,12 @@ function Login() {
   const handelLogInandFetchSubjectCodes = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    //check token
     if (!token) {
       setMessage(t.messages.acessLimitMessage);
       return;
     }
 
-    //sheet link check
     const trimmedLink = sheetLink.trim();
-
     if (!trimmedLink) {
       setMessage(t.messages.linkBLankErrorMessage);
       return;
@@ -65,7 +61,6 @@ function Login() {
     setMessage(t.messages.acessCheckingMessage);
 
     const sheetID = extractId(trimmedLink);
-
     if (!sheetID) {
       setMessage(t.messages.linkFalseMessage);
       setIsLoading(false);
@@ -73,7 +68,6 @@ function Login() {
     }
 
     try {
-      //sheet api call
       const res = await axiosInstance.get(
         `/${sheetID}?fields=sheets.properties.title`,
       );
@@ -91,7 +85,6 @@ function Login() {
 
       if (driveRes.data && driveRes.data.capabilities) {
         const canEdit = driveRes.data.capabilities.canEdit;
-
         if (!canEdit) {
           setMessage(t.messages.wrongMailMessage);
           setIsLoading(false);
@@ -100,7 +93,6 @@ function Login() {
       }
 
       dispatch(loginSuccess({ sheetID: sheetID, subjectCodes }));
-
       setMessage(t.messages.successMessage);
       navigate("/dashboard");
     } catch (err: any) {
@@ -119,52 +111,60 @@ function Login() {
   const handelResetSession = () => {
     googleLogout();
     setSheetLink("");
-
     setMessage(t.messages.sessionClearMessage);
     dispatch(logoutSuccess());
     navigate("/");
   };
 
   return (
-    <section className="flex flex-col justify-center items-center gap-8 ">
-      <div className="flex flex-col gap-4 justify-center items-center ">
-        <img
-          src={image}
-          alt="logo"
-          className="w-[6rem] rounded-[1rem] shadow-[0_0_10px_#4c5a7479] sm:w-[8rem] "
-        />
-        <p className="text-[1.1rem] text-center font-semibold sm:text-[1.3rem] ">
-          Auto Present
-        </p>
-      </div>
-      <form
-        onSubmit={handelLogInandFetchSubjectCodes}
-        className="flex flex-col gap-6 w-[60%] max-w-[30rem]  justify-center items-center "
-      >
-        <div className="flex flex-col gap-4 text-[1.2rem] justify-center items-center w-full ">
-          <div className="flex justify-between  w-full border p-2 text-[0.8rem] sm:text-[1rem] rounded-[0.7rem] border-slate-600 ">
-            <p className="gap-[0.1rem] flex flex-col ml-2 ">
-              <span>{t.text.loginAs} </span>
-              <span>{userMail}</span>
-            </p>
+    <section className="min-h-[80vh] mt-25 flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-2xl p-6 md:p-10 flex flex-col justify-center items-center gap-6 shadow-2xl">
+        <div className="flex flex-col gap-3 justify-center items-center text-center">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <img
+              src={image}
+              alt="logo"
+              className="relative w-24 h-24 rounded-2xl border border-gray-700/50 object-cover shadow-lg"
+            />
+          </div>
+          <p className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent tracking-wide">
+            Auto Present
+          </p>
+        </div>
+
+        <form
+          onSubmit={handelLogInandFetchSubjectCodes}
+          className="w-full flex flex-col gap-5"
+        >
+          <div className="flex justify-between items-center w-full p-3 bg-gray-900/60 border border-gray-800 rounded-xl text-xs md:text-sm">
+            <div className="flex flex-col ml-1 text-left gap-0.5">
+              <span className="text-gray-500 font-medium">
+                {t.text.loginAs}
+              </span>
+              <span className="text-gray-300 truncate max-w-[12rem] sm:max-w-[14rem] font-mono">
+                {userMail}
+              </span>
+            </div>
             <button
               type="button"
               onClick={handelResetSession}
-              className="text-[0.8rem] sm:text-[1rem] flex flex-col mr-2 justify-center items-center text-[red] cursor-pointer hover:text-[#ff0000c2]  group "
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-400 font-semibold hover:bg-rose-500/10 transition-colors duration-200 group cursor-pointer"
             >
-              <span className="flex items-center justify-center gap-[0.2rem]  ">
-                {" "}
-                <RiResetLeftFill className="transition-transform duration-700 ease group-hover:rotate-[-360deg] " />{" "}
-                Reset{" "}
-              </span>
-              <span>Session</span>
+              <RiResetLeftFill className="text-base transition-transform duration-500 group-hover:rotate-[-180deg]" />
+              <span>Reset</span>
             </button>
           </div>
-          <div className="text-[0.9rem] flex flex-col gap-1 sm:text-[1rem] w-full ">
-            <label className=" w-full ">
-              <span>{t.text.inputMessage}</span>{" "}
+
+          <div className="w-full flex flex-col gap-2 text-left">
+            <label
+              htmlFor="sheetLink"
+              className="text-sm font-medium text-gray-400"
+            >
+              {t.text.inputMessage}
             </label>
-            <div className=" border  rounded border-slate-600 ">
+
+            <div className="flex items-center bg-gray-950 border border-gray-800 rounded-xl overflow-hidden focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
               <input
                 id="sheetLink"
                 type="text"
@@ -173,9 +173,8 @@ function Login() {
                 onChange={(e) => setSheetLink(e.target.value)}
                 placeholder="https://docs.google.com/spreadsheets/..."
                 required
-                className="focus:outline-none p-2 pr-1 w-[70%] h-full sm:w-[75%] md:w-[80%] "
+                className="w-full bg-transparent text-gray-200 p-3 text-sm focus:outline-none placeholder-gray-600"
               />
-
               <button
                 type="button"
                 onClick={async () => {
@@ -186,35 +185,37 @@ function Login() {
                     setMessage(t.messages.pastLinDenied);
                   }
                 }}
-                className="text-center w-[30%] h-[2.1rem] text-center bg-blue-600/30 text-blue-400 hover:bg-blue-600/50 rounded cursor-pointer sm:w-[25%] md:w-[20%] "
+                className="px-4 py-2 mr-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-medium text-xs rounded-lg transition-colors whitespace-nowrap active:scale-95 cursor-pointer"
               >
-                Paste Link
+                Paste
               </button>
             </div>
           </div>
-        </div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="text-[1.1rem] border w-full h-[2rem] rounded bg-blue-600 hover:bg-blue-500 text-white shadow-[0_4px_14px_rgba(37,99,235,0.4)] border-slate-600 cursor-pointer transition-all hover:scale-[1.05] mb-[2rem] sm:mb-[5rem] "
-        >
-          {isLoading ? t.verify.verifying : t.verify.loading}
-        </button>
-      </form>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-base shadow-lg shadow-blue-500/20 hover:from-blue-600 hover:to-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          >
+            {isLoading ? t.verify.verifying : t.verify.loading}
+          </button>
+        </form>
+      </div>
+
       {message && (
-        <>
-          <div className="fixed inset-0 w-screen h-screen bg-black/40 backdrop-blur-md flex justify-center items-center z-[9999] animate-[fadeIn_0.3s_ease-outG] ">
-            <div className="flex flex-col justify-center items-center gap-4 bg-white/85 border border-red-500/20 backdrop-blur-sm p-5 sm:p-6 rounded-2xl w-[90%] max-w-[420px] shadow-[0_10px_30px_rgba(0,0,0,0.2)] animate-[scaleUp_0.3s_cubic-bezier(0.34,1.56,0.64,64,1)]   ">
-              <p className="text-[1.2rem] text-center font-medium text-[#dc3545] leading-relaxed m-0 flex-1 ">
-                {message}
-              </p>
-              <MdOutlineCancel
-                onClick={() => setMessage("")}
-                className="text-[2rem] text-gray-500 cursor-pointer transition-all duration-200 ease-in-out hover:text-[#dc3545] hover:scale-115 flex-shrink-0 "
-              />
-            </div>
+        <div className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="relative flex flex-col justify-center items-center gap-5 bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl animate-scaleUp">
+            <p className="text-base md:text-lg font-medium text-rose-400 leading-relaxed pt-2">
+              {message}
+            </p>
+            <button
+              onClick={() => setMessage("")}
+              className="p-1 rounded-full hover:bg-gray-800 text-gray-500 hover:text-rose-400 transition-colors cursor-pointer"
+            >
+              <MdOutlineCancel className="text-3xl" />
+            </button>
           </div>
-        </>
+        </div>
       )}
     </section>
   );

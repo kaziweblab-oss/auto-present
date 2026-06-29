@@ -22,7 +22,7 @@ export interface loadAllRollsParams {
 }
 
 export interface RollInputParams {
-  e: React.KeyboardEvent<HTMLTextAreaElement>;
+  e: React.KeyboardEvent<HTMLInputElement>;
   inputRoll: string;
   selectedSubjectsCode: string[];
   allValidRolls: string[];

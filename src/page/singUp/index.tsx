@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleAuth } from "../../hooks/useAuth";
 
-//import icons here
+// import icons here
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { FaArrowRightLong } from "react-icons/fa6";
 
-//import langueages here
+// import languages here
 import en from "../../lang/en.json";
 import bn from "../../lang/bn.json";
 
@@ -15,87 +15,79 @@ const languages: Record<string, typeof en> = { en, bn };
 
 function SignUp() {
   const currentLan = useSelector((state: any) => state.langueageR.lang);
-
   const t = languages[currentLan].signin;
-
   const navigate = useNavigate();
 
   const { googleLogin, errorMessage, setErrorMessage } =
     useGoogleAuth(currentLan);
+  //conditional icon base with message
+  const isSuccess = errorMessage === t.hook.sucess;
+  const isAccessIssue = errorMessage === t.hook.acessMessage;
 
   return (
-    <div className="h-[70vh]">
-      <div className=" h-[100%] flex flex-col justify-center items-center">
-        <div className="flex flex-col gap-4 justify-center items-center text-[1.3rem] w-[30rem] h-[20rem] bg-[#2a2a32a6] backdrop-blur-[10px] border-[1px] border-[rgba(255,255,255,0.1)] rounded-[1.2rem] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.1)]">
-          <span>
-            <FiCheckCircle className="text-[3rem] text-[#34d399] bg-[rgba(16,185,129,0.15)] p-3 rounded-[50%]" />
+    <div className="min-h-[75vh] mt-10 flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-md border border-gray-800 rounded-2xl p-8 md:p-10 flex flex-col justify-center items-center gap-6 text-center shadow-2xl">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-emerald-500 rounded-full blur-xl opacity-20"></div>
+          <span className="relative flex justify-center items-center">
+            <FiCheckCircle className="text-[3.5rem] text-emerald-400 bg-emerald-500/10 p-3 rounded-full border border-emerald-500/20 shadow-inner" />
           </span>
-
-          <p className="text-center ">{t.massage}</p>
-          <button
-            className="p-2 rounded-[0.5rem] flex justify-center items-center gap-[0.2rem] text-[#1f1f1f] bg-white transition duration-300 ease-in-out cursor-pointer hover:bg-[rgb(67,64,99)] hover:shadow-[0_0_10px_rgb(21,22,29)] hover:text-[#fff] hover:scale-[1.05] "
-            onClick={() => googleLogin()}
-          >
-            <i>
-              <FcGoogle />
-            </i>{" "}
-            {t.btn}
-          </button>
         </div>
+
+        <p className="text-gray-300 text-base md:text-lg leading-relaxed font-light">
+          {t.massage}
+        </p>
+
+        <button
+          className="w-full mt-2 py-3 px-6 rounded-xl flex justify-center items-center gap-3 text-gray-800 font-semibold bg-white border border-gray-200 shadow-md transition-all duration-300 ease-in-out cursor-pointer hover:bg-gray-50 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => googleLogin()}
+        >
+          <FcGoogle className="text-2xl" />
+          <span>{t.btn}</span>
+        </button>
       </div>
+
       {errorMessage && (
-        <div className="flex fixed top-0 left-0 w-[100vw] h-[100vh] bg-[rgba(0,0,0,0.45)] backdrop-blur-[8px] justify-center items-center z-999 ">
-          <div className="flex justify-end pb-[2.3rem] items-center flex-col gap-[3rem] w-[25rem] h-[15rem] bg-[#fff] rounded-[1.5rem] ">
+        <div className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4 transition-all animate-fadeIn">
+          <div className="relative flex flex-col justify-end items-center w-full max-w-sm bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-2xl min-h-[16rem]">
             <p
-              className={`${"text-[1.1rem] text-center "} ${errorMessage === t.hook.sucess ? "text-[green]" : "text-[red]"}`}
+              className={`text-lg font-medium leading-snug mt-4 ${isSuccess ? "text-emerald-400" : "text-rose-500"}`}
             >
               {errorMessage}
             </p>
 
-            {errorMessage === t.hook.acessMessage ? (
-              <>
+            <div className="w-full mt-6 flex justify-center">
+              {isAccessIssue ? (
                 <button
-                  className="flex gap-[0.5rem] justify-center items-center text-[1.1rem] font-semibold border-2 border-[#1a3681] p-[0.4rem_1.2rem] rounded-[0.5rem] cursor-pointer bg-[#1a3681] text-white transition duration-300 ease-in-out hover:bg-[#12265c] hover:border-[#12265c] hover:scale-[1.02] shadow-sm group "
+                  className="w-full flex gap-2 justify-center items-center text-base font-bold bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white py-3 px-6 rounded-xl transition duration-300 shadow-lg shadow-blue-600/20 group mt-8 cursor-pointer"
                   onClick={() => {
                     navigate("/fix-issue");
                     setErrorMessage(null);
                   }}
                 >
-                  <span className="flex justify-center items-center  ">
-                    Fix This Issue
-                  </span>
-                  <FaArrowRightLong className="flex justify-center items-center transition-all group-hover:translate-x-1 " />
+                  <span>Fix This Issue</span>
+                  <FaArrowRightLong className="mt-1 transition-transform group-hover:translate-x-1 " />
                 </button>
-              </>
-            ) : (
-              <>
-                {errorMessage === t.hook.sucess ? (
-                  <>
-                    <button
-                      className="flex gap-[0.5rem] justify-center items-center text-[1.1rem] font-semibold border-2 border-[#10b981] p-[0.4rem_1.2rem] rounded-[0.5rem] cursor-pointer bg-[#10b981] text-white transition duration-300 ease-in-out hover:bg-[#059669] hover:border-[#059669] hover:scale-[1.02] shadow-sm group "
-                      onClick={() => {
-                        navigate("/login");
-                        setErrorMessage(null);
-                      }}
-                    >
-                      <span className="flex justify-center items-center  ">
-                        Go To Login Page
-                      </span>
-                      <FaArrowRightLong className="flex justify-center items-center transition-all group-hover:translate-x-1 " />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <FiXCircle
-                      className="text-[#d9363e] text-[2rem] cursor-pointer hover:text-red-500 transition-all duration-300 hover:scale-[1.1] "
-                      onClick={() => {
-                        setErrorMessage(null);
-                      }}
-                    />
-                  </>
-                )}
-              </>
-            )}
+              ) : isSuccess ? (
+                <button
+                  className="w-full flex gap-2 justify-center items-center text-base font-bold bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white py-3 px-6 rounded-xl transition duration-300 shadow-lg shadow-emerald-500/20 group cursor-pointer "
+                  onClick={() => {
+                    navigate("/login");
+                    setErrorMessage(null);
+                  }}
+                >
+                  <span>Go To Login Page</span>
+                  <FaArrowRightLong className="transition-transform group-hover:translate-x-1" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setErrorMessage(null)}
+                  className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-rose-400 transition-all duration-300 active:scale-90 cursor-pointer mt-7 "
+                >
+                  <FiXCircle className="text-3xl" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

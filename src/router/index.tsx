@@ -15,6 +15,8 @@ import PrivacyPolicy from "../page/privacyPolicy";
 import Err from "../page/err";
 import Login from "../page/login";
 import SignUp from "../page/singUp";
+import TermsOfService from "../page/termsOfService";
+import AccountInfo from "../page/account";
 
 function Router() {
   return (
@@ -28,10 +30,12 @@ function Router() {
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/account-info" element={<AccountInfo />} />
             <Route path="/fix-issue" element={<FixIssue />} />
             <Route path="/about-info" element={<AboutInfo />} />
             <Route path="/guide" element={<Guide />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />G
             <Route path="*" element={<Err />} />
           </Routes>
           <Footer />

@@ -9,6 +9,7 @@ import { App } from './app';
 import { ErrorBoundary } from './components/error-boundary';
 import './i18n';
 import { ThemeProvider } from './providers/theme-provider';
+import { AuthProvider } from './providers/auth-provider';
 import './styles.css';
 
 const queryClient = new QueryClient({
@@ -28,7 +29,9 @@ createRoot(rootElement).render(
     <ErrorBoundary>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <AuthProvider>
+            <App />
+          </AuthProvider>
         </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

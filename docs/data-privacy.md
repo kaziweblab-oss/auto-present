@@ -1,5 +1,10 @@
 # Data Privacy and Minimization
 
+Phase 2 stores minimum verified identity, backend roles, privacy-preserving IP hash, bounded
+user-agent summary, session timestamps, and safe audit metadata. Raw IP, OAuth material, raw
+refresh tokens, Google tokens, and encryption keys are never logged. Google refresh credentials
+use AES-256-GCM with key-version metadata.
+
 Google Sheets remains the source of truth for attendance. MongoDB must not duplicate complete
 student Sheet rows or full attendance history.
 

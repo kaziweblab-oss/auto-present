@@ -4,6 +4,13 @@ Auto Present is a bilingual attendance-management Web/PWA foundation for Barguna
 Institute's Department of Computer Science & Technology. Google Sheets remains the attendance
 source of truth.
 
+## Authentication setup
+
+Copy each `.env.example`; provide a Google Web OAuth client and exact callback URIs. Generate
+independent high-entropy JWT/IP-hash secrets and a 32-byte base64 Google-token encryption key.
+`COOKIE_SECURE=false` is local HTTP only; production requires HTTPS. See
+`docs/authentication.md` and `docs/session-security.md`.
+
 ## Requirements
 
 - Node.js 20 or newer

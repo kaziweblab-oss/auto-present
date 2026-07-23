@@ -24,6 +24,7 @@
   --primary: #176b87;
   --primary-bright: #2f9eb4;
   --accent: #83cf64;
+  --danger: #b42318;
   --shadow: 0 24px 80px rgba(30, 71, 91, 0.12);
 }
 
@@ -37,6 +38,7 @@
   --primary: #54bad0;
   --primary-bright: #68cadb;
   --accent: #95dd70;
+  --danger: #ff9b8f;
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
 }
 
@@ -227,12 +229,29 @@ nav a.active {
   gap: 0.65rem;
 }
 .segmented {
+  position: relative;
   padding: 0.2rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
 }
+.segmented::before {
+  position: absolute;
+  inset: 0.2rem auto 0.2rem 0.2rem;
+  width: calc(50% - 0.2rem);
+  border-radius: 999px;
+  background: var(--primary);
+  content: '';
+  transform: translateX(0);
+  transition: transform 210ms ease;
+}
+.segmented[data-language='bn']::before {
+  transform: translateX(100%);
+}
 .segmented button {
+  position: relative;
+  z-index: 1;
+  min-width: 42px;
   padding: 0.3rem 0.55rem;
   border: 0;
   border-radius: 999px;
@@ -244,7 +263,7 @@ nav a.active {
 }
 .segmented button.active {
   color: white;
-  background: var(--primary);
+  background: transparent;
 }
 .theme-trigger {
   display: inline-flex;
@@ -358,6 +377,16 @@ nav a.active {
   background: var(--surface);
   color: inherit;
   cursor: pointer;
+  overflow: hidden;
+}
+.menu-trigger-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.menu-trigger-initials {
+  font-size: 0.72rem;
+  font-weight: 850;
 }
 .menu-panel {
   position: absolute;
@@ -365,21 +394,232 @@ nav a.active {
   right: 0;
   display: grid;
   gap: 0.5rem;
-  width: 210px;
+  width: min(310px, calc(100vw - 2rem));
   padding: 0.8rem;
   border: 1px solid var(--border);
   border-radius: 0.8rem;
   background: var(--surface-strong);
   box-shadow: var(--shadow);
   font-size: 0.85rem;
+  animation: theme-menu-in 150ms ease-out;
 }
-.menu-panel span {
+.menu-panel > span,
+.menu-identity span {
   color: var(--muted);
 }
-.menu-panel a {
+.menu-panel a,
+.menu-logout,
+.menu-disconnect {
   color: var(--primary);
   font-weight: 700;
   text-decoration: none;
+}
+.menu-panel a,
+.menu-logout,
+.menu-disconnect {
+  padding: 0.42rem 0.5rem;
+  border-radius: 0.45rem;
+}
+.menu-panel a:hover,
+.menu-logout:hover:not(:disabled),
+.menu-disconnect:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.menu-identity {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+.menu-identity img,
+.menu-avatar-fallback {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  object-fit: cover;
+  color: var(--primary);
+  font-weight: 850;
+}
+.menu-identity div {
+  display: grid;
+  min-width: 0;
+}
+.menu-identity strong,
+.menu-identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-role-status {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.menu-logout,
+.menu-disconnect {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.menu-logout:disabled,
+.menu-disconnect:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.menu-disconnect {
+  color: var(--danger);
+}
+.menu-connection-state {
+  display: grid;
+  gap: 0.15rem;
+  margin: -0.3rem 0 0;
+  padding: 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.dialog-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(4, 12, 22, 0.62);
+}
+.disconnect-dialog {
+  width: min(480px, 100%);
+  padding: clamp(1.2rem, 4vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  animation: theme-menu-in 150ms ease-out;
+}
+.disconnect-dialog h2 {
+  margin-top: 0;
+}
+.disconnect-dialog p {
+  color: var(--muted);
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.dialog-actions button {
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.dialog-actions .danger-button {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-color: transparent;
+  background: var(--danger);
+  color: white;
+}
+.dialog-actions button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.menu-error {
+  margin: 0;
+  color: var(--danger);
+  line-height: 1.4;
+}
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel,
+  .spin,
+  .disconnect-dialog {
+    animation: none;
+  }
+}
+.state-panel {
+  width: min(680px, calc(100% - 2rem));
+  margin: clamp(2rem, 8vw, 6rem) auto;
+  padding: clamp(1.35rem, 5vw, 2.5rem);
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+}
+.state-panel h1 {
+  margin: 0.5rem 0 1rem;
+}
+.state-panel > p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+.auth-reference {
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+.auth-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.auth-recovery-actions button,
+.auth-recovery-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+.auth-recovery-actions .primary-action {
+  border-color: transparent;
+  background: var(--primary);
+  color: white;
+}
+.auth-recovery-actions button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+@media (max-width: 520px) {
+  .auth-recovery-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .auth-recovery-actions > * {
+    justify-content: center;
+    width: 100%;
+  }
 }
 .hero {
   display: grid;
@@ -503,6 +743,17 @@ nav a.active {
   border-radius: 1.25rem;
   background: var(--surface-strong);
   box-shadow: 0 16px 48px rgba(30, 71, 91, 0.07);
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+@media (hover: hover) {
+  .role-card:has(button:not(:disabled)):hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+    box-shadow: 0 20px 52px rgba(30, 71, 91, 0.11);
+  }
 }
 .role-icon {
   display: grid;
@@ -528,11 +779,51 @@ nav a.active {
   justify-content: space-between;
   width: 100%;
   padding: 0.7rem 0.85rem;
-  border: 0;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
   border-radius: 0.7rem;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  cursor: pointer;
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.role-card button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 13%, transparent);
+}
+.role-card button:hover:not(:disabled) .role-action-arrow {
+  transform: translateX(3px);
+}
+.role-card button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.role-card button:focus:not(:focus-visible) {
+  outline: none;
+}
+.role-card button:disabled {
   color: var(--muted);
+  border-color: var(--border);
   background: color-mix(in srgb, var(--border) 65%, transparent);
-  cursor: not-allowed;
+}
+.role-card button[aria-busy='true'] {
+  cursor: wait;
+}
+.role-action-arrow {
+  flex: 0 0 auto;
+  transition: transform 200ms ease;
+}
+.role-action-spinner {
+  flex: 0 0 auto;
+  animation: role-action-spin 700ms linear infinite;
+}
+@keyframes role-action-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .content-page {
   max-width: 1040px;
@@ -906,6 +1197,15 @@ nav a.active {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .segmented::before,
+  .role-card,
+  .role-card button,
+  .role-action-arrow {
+    transition: none;
+  }
+  .role-action-spinner {
+    animation: none;
+  }
   .theme-chevron,
   .theme-content {
     animation: none;

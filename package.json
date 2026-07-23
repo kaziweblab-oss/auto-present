@@ -21,6 +21,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:integration": "npm run test:integration --workspace @auto-present/api",
+    "test:api": "npm run test:unit --workspace @auto-present/api && npm run test:esm --workspace @auto-present/api",
+    "test:web": "npm run test:unit --workspace @auto-present/web",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {

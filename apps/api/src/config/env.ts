@@ -12,6 +12,33 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+  API_BASE_URL: z.url().default('http://localhost:4000'),
+  WEB_APP_URL: z.url().default('http://localhost:5173'),
+  GOOGLE_CLIENT_ID: z.string().min(1).default('local-client-id'),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).default('local-client-secret'),
+  GOOGLE_IDENTITY_REDIRECT_URI: z
+    .url()
+    .default('http://localhost:4000/api/v1/auth/google/callback'),
+  GOOGLE_WORKSPACE_REDIRECT_URI: z
+    .url()
+    .default('http://localhost:4000/api/v1/auth/google/callback'),
+  JWT_ISSUER: z.string().min(1).default('auto-present-api'),
+  JWT_AUDIENCE: z.string().min(1).default('auto-present-web'),
+  JWT_ACCESS_SECRET: z.string().min(32).default('local-only-jwt-secret-change-me-000000'),
+  JWT_KEY_ID: z.string().min(1).default('v1'),
+  ACCESS_TOKEN_TTL: z.coerce.number().int().min(60).max(3600).default(600),
+  REFRESH_TOKEN_TTL: z.coerce.number().int().min(3600).default(2_592_000),
+  COOKIE_DOMAIN: z.string().optional(),
+  COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  GOOGLE_TOKEN_ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[A-Za-z0-9+/]{43}=$/)
+    .default('MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA='),
+  GOOGLE_TOKEN_ENCRYPTION_KEY_VERSION: z.string().min(1).default('v1'),
+  IP_HASH_SECRET: z.string().min(32).default('local-only-ip-hash-secret-00000000'),
 });
 
 const result = envSchema.safeParse(process.env);
@@ -27,3 +54,10 @@ export const env = {
     .map((origin) => origin.trim())
     .filter(Boolean),
 };
+
+if (
+  env.NODE_ENV === 'production' &&
+  (!env.COOKIE_SECURE || env.GOOGLE_CLIENT_ID === 'local-client-id')
+) {
+  throw new Error('Production authentication configuration is insecure');
+}

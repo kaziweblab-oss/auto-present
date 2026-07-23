@@ -11,9 +11,14 @@ import { notFoundMiddleware } from './middleware/not-found.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { createHealthRouter } from './modules/health/health.routes.js';
 import type { HealthService } from './modules/health/health.service.js';
+import { createAuthRouter } from './modules/auth/auth.routes.js';
+import type { AuthRepository } from './modules/auth/auth.repository.js';
+import type { AuthService } from './modules/auth/auth.service.js';
 
 export interface AppDependencies {
   healthService?: HealthService;
+  authService?: AuthService;
+  authRepository?: AuthRepository;
 }
 
 function createCorsOptions(): CorsOptions {
@@ -51,6 +56,10 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       standardHeaders: 'draft-8',
       legacyHeaders: false,
     }),
+  );
+  app.use(
+    `${DEFAULT_API_PREFIX}/auth`,
+    createAuthRouter(dependencies.authService, dependencies.authRepository),
   );
   app.use(
     `${DEFAULT_API_PREFIX}/health`,

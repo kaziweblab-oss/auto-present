@@ -1,6 +1,11 @@
 # Google Integration Plan
 
-No Google OAuth or Google API call is implemented in Phase 1.
+Phase 2 implements separate identity and incremental Workspace OAuth foundations. Identity uses
+`openid`, `email`, and `profile`. Workspace uses `spreadsheets` and `drive.file`, stores normalized
+grants, and stores refresh credentials with AES-256-GCM ciphertext, IV, authentication tag, and key
+version. An existing refresh token is preserved when Google omits a new one.
+
+No Sheets/Drive business API, Sheet verification, parsing, or attendance operation is included.
 
 ## Consent by role
 

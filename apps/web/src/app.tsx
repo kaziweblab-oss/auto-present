@@ -14,6 +14,9 @@ const InformationalPage = lazy(() =>
     default: module.InformationalPage,
   })),
 );
+const AuthResultPage = lazy(() =>
+  import('@/pages/auth-result-page').then((module) => ({ default: module.AuthResultPage })),
+);
 
 const router = createBrowserRouter([
   {
@@ -26,6 +29,7 @@ const router = createBrowserRouter([
       { path: 'privacy', element: <InformationalPage page="privacy" /> },
       { path: 'terms', element: <InformationalPage page="terms" /> },
       { path: 'support', element: <InformationalPage page="support" /> },
+      { path: 'auth/result', element: <AuthResultPage /> },
       {
         path: 'help/google-permissions',
         element: <InformationalPage page="googlePermissions" />,

@@ -13,6 +13,10 @@ apps/web -> REST API -> apps/api -> MongoDB / future Google integrations
 `packages/config` contains only genuinely reused defaults. `packages/shared` remains free of
 browser-only and backend-only dependencies.
 
+Authentication follows route/middleware -> service -> repository -> Mongoose model. OAuth
+transactions, application sessions, and Google credentials are independent. Frontend role intent
+cannot grant authorization; access tokens remain in memory and refresh tokens remain cookie-only.
+
 ## Backend boundaries
 
 Every business endpoint follows:

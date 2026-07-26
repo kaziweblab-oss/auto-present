@@ -37,7 +37,7 @@ const csrfCookie = 'ap_csrf';
 const cookieBase = {
   httpOnly: true,
   secure: env.COOKIE_SECURE,
-  sameSite: 'lax' as const,
+  sameSite: env.COOKIE_SAMESITE,
   domain: env.COOKIE_DOMAIN,
   path: '/api/v1/auth',
 };
@@ -181,10 +181,42 @@ export function createAuthRouter(service = new AuthService(), repository = new A
       next(error);
     }
   });
+  router.post('/switch-role', requireAuth, requireCookieCsrf, async (request, response, next) => {
+    try {
+      const { targetRole } = z
+        .object({ targetRole: z.enum(['ADMIN', 'CAPTAIN', 'STUDENT']) })
+        .strict()
+        .parse(request.body);
+      const result = await service.switchRole(
+        request.auth!.userId,
+        request.auth!.sessionId,
+        targetRole,
+      );
+      response.cookie(csrfCookie, result.csrfToken, {
+        ...cookieBase,
+        httpOnly: false,
+        path: '/',
+        maxAge: env.REFRESH_TOKEN_TTL * 1000,
+      });
+      response.json({
+        success: true,
+        data: {
+          accessToken: result.accessToken,
+          csrfToken: result.csrfToken,
+          user: result.user,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
   router.get('/me', requireAuth, async (request, response, next) => {
     try {
+      response.set('Cache-Control', 'no-store');
       const user = await repository.findUser(request.auth!.userId);
       if (!user) throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+      if (user.status !== 'ACTIVE')
+        throw new AppError(401, 'ACCOUNT_SUSPENDED', 'Account is not active');
       response.json({
         success: true,
         data: {
@@ -201,6 +233,10 @@ export function createAuthRouter(service = new AuthService(), repository = new A
   });
   router.get('/sessions', requireAuth, async (request, response, next) => {
     try {
+      response.set('Cache-Control', 'no-store');
+      const user = await repository.findUser(request.auth!.userId);
+      if (!user || user.status !== 'ACTIVE')
+        throw new AppError(401, 'ACCOUNT_SUSPENDED', 'Account is not active');
       const sessions = await repository.listSessions(request.auth!.userId);
       response.json({
         success: true,

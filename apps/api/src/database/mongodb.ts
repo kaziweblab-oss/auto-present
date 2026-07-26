@@ -11,7 +11,7 @@ export function getMongoConnectionStatus(): MongoConnectionStatus {
 
 export async function connectToMongoDB(uri: string): Promise<void> {
   await mongoose.connect(uri, {
-    serverSelectionTimeoutMS: 5_000,
+    serverSelectionTimeoutMS: 15_000,
   });
   logger.info('MongoDB connection established');
 }

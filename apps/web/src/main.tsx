@@ -10,7 +10,10 @@ import { ErrorBoundary } from './components/error-boundary';
 import './i18n';
 import { ThemeProvider } from './providers/theme-provider';
 import { AuthProvider } from './providers/auth-provider';
+import { checkVersionAndMigrate } from './lib/storage';
 import './styles.css';
+
+checkVersionAndMigrate();
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { getItem, setItem } from '../lib/storage';
 
 export type Theme = 'system' | 'light' | 'dark';
 
@@ -24,7 +25,7 @@ function applyTheme(theme: Theme): () => void {
 
 export function ThemeProvider({ children }: { children: ReactNode }): ReactNode {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem('auto-present-theme');
+    const stored = getItem('theme', 'system');
     return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
   });
 
@@ -34,7 +35,7 @@ export function ThemeProvider({ children }: { children: ReactNode }): ReactNode 
     () => ({
       theme,
       setTheme(nextTheme: Theme) {
-        localStorage.setItem('auto-present-theme', nextTheme);
+        setItem('theme', nextTheme);
         setThemeState(nextTheme);
       },
     }),

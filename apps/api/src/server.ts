@@ -1,17 +1,13 @@
-import { createServer } from 'node:http';
+import { createServer, type Server } from 'node:http';
 import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { connectToMongoDB, disconnectFromMongoDB } from './database/mongodb.js';
 import { AuthService } from './modules/auth/auth.service.js';
 
-const app = createApp();
-const server = createServer(app);
-let isShuttingDown = false;
-
-function closeServer(): Promise<void> {
+export function closeServer(srv: Server): Promise<void> {
   return new Promise((resolve, reject) => {
-    server.close((error) => {
+    srv.close((error) => {
       if (error) {
         reject(error);
         return;
@@ -21,9 +17,7 @@ function closeServer(): Promise<void> {
   });
 }
 
-async function shutdown(signal: string): Promise<void> {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
+export async function shutdown(srv: Server, signal: string): Promise<void> {
   logger.info('Graceful shutdown started', { signal });
 
   const forceExitTimer = setTimeout(() => {
@@ -33,7 +27,7 @@ async function shutdown(signal: string): Promise<void> {
   forceExitTimer.unref();
 
   try {
-    await closeServer();
+    await closeServer(srv);
     await disconnectFromMongoDB();
     clearTimeout(forceExitTimer);
     logger.info('Graceful shutdown completed');
@@ -46,18 +40,48 @@ async function shutdown(signal: string): Promise<void> {
   }
 }
 
-process.on('SIGINT', () => void shutdown('SIGINT'));
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
+if (!process.env.VITEST) {
+  const app = createApp();
+  const server = createServer(app);
+  let isShuttingDown = false;
 
-server.listen(env.PORT, () => {
-  logger.info('API server listening', { port: env.PORT });
-});
-
-try {
-  await connectToMongoDB(env.MONGODB_URI);
-  await new AuthService().bootstrapAdmin();
-} catch (error) {
-  logger.warn('MongoDB is unavailable; API remains live but is not ready', {
-    error: error instanceof Error ? error.message : 'Unknown error',
+  process.on('SIGINT', () => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    void shutdown(server, 'SIGINT');
   });
+  process.on('SIGTERM', () => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    void shutdown(server, 'SIGTERM');
+  });
+
+  let shutdownInProgress = false;
+  process.on('unhandledRejection', (reason) => {
+    if (shutdownInProgress) return;
+    shutdownInProgress = true;
+    logger.error('Unhandled rejection', {
+      error: reason instanceof Error ? reason.message : String(reason),
+    });
+    process.exit(1);
+  });
+  process.on('uncaughtException', (error) => {
+    if (shutdownInProgress) return;
+    shutdownInProgress = true;
+    logger.error('Uncaught exception', { error: error.message });
+    process.exit(1);
+  });
+
+  server.listen(env.PORT, () => {
+    logger.info('API server listening', { port: env.PORT });
+  });
+
+  try {
+    await connectToMongoDB(env.MONGODB_URI);
+    await new AuthService().bootstrapAdmin();
+  } catch (error) {
+    logger.warn('MongoDB is unavailable; API remains live but is not ready', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 }

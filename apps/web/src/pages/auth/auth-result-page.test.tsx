@@ -26,32 +26,38 @@ const identity = (roles: AuthUser['roles']): AuthUser => ({
 describe('OAuth result states', () => {
   beforeEach(() => mockUseAuth.mockReturnValue({ ...base, user: identity([]) }));
 
-  it('shows pending identity without parsing Google tokens', () => {
+  it('redirects a student with pending identity to the student page without leaking tokens', () => {
     mockUseAuth.mockReturnValue({
       ...base,
       user: { ...identity([]), requestedRole: 'STUDENT' },
     });
     render(
       <MemoryRouter initialEntries={['/auth/result?code=google-code&id_token=secret']}>
-        <AuthResultPage />
+        <Routes>
+          <Route path="/auth/result" element={<AuthResultPage />} />
+          <Route path="/student" element={<p>Student onboarding</p>} />
+        </Routes>
       </MemoryRouter>,
     );
-    expect(screen.getByText(/Academic profile verification is pending/i)).toBeInTheDocument();
+    expect(screen.getByText('Student onboarding')).toBeInTheDocument();
     expect(document.body.textContent).not.toContain('google-code');
     expect(document.body.textContent).not.toContain('secret');
   });
 
-  it('shows Captain Sheet verification as a distinct pending state', () => {
+  it('routes a verified Captain identity into Sheet onboarding', () => {
     mockUseAuth.mockReturnValue({
       ...base,
       user: { ...identity([]), requestedRole: 'CAPTAIN' },
     });
     render(
       <MemoryRouter>
-        <AuthResultPage />
+        <Routes>
+          <Route path="/" element={<AuthResultPage />} />
+          <Route path="/captain/setup" element={<p>Captain Sheet onboarding</p>} />
+        </Routes>
       </MemoryRouter>,
     );
-    expect(screen.getByText(/Captain Sheet verification is pending/i)).toBeInTheDocument();
+    expect(screen.getByText('Captain Sheet onboarding')).toBeInTheDocument();
   });
 
   it('shows authorized Admin state', () => {

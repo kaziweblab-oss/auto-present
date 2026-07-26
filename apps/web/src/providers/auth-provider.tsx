@@ -20,17 +20,21 @@ import { apiClient, setAccessToken, setCsrfToken } from '@/lib/api';
 import { revokeGoogleIdentityConsent } from '@/lib/google-identity-services';
 
 type AuthStatus = 'loading' | 'anonymous' | 'authenticated';
+export type SwitchRoleResult =
+  { success: true; user: AuthUser; accessToken: string } | { success: false };
 interface AuthContextValue {
   status: AuthStatus;
   user: AuthUser | null;
   errorCode: string | null;
   isLoggingOut: boolean;
   logoutErrorCode: string | null;
+  isSwitchingRole: boolean;
   googleConnection: GoogleConnectionView | null;
   isDisconnectingGoogle: boolean;
   disconnectGoogleErrorCode: string | null;
   pendingRoles: UserRole[];
   startSignIn(role: UserRole): Promise<void>;
+  switchRole(targetRole: UserRole): Promise<SwitchRoleResult>;
   refresh(): Promise<void>;
   logout(): Promise<boolean>;
   disconnectGoogle(): Promise<boolean>;
@@ -91,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactNode {
   const [googleConnection, setGoogleConnection] = useState<GoogleConnectionView | null>(null);
   const [isDisconnectingGoogle, setIsDisconnectingGoogle] = useState(false);
   const [disconnectGoogleErrorCode, setDisconnectGoogleErrorCode] = useState<string | null>(null);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [pendingRoles, setPendingRoles] = useState<UserRole[]>([]);
   const pendingRolesRef = useRef(new Set<UserRole>());
   const logoutPromise = useRef<Promise<boolean> | null>(null);
@@ -142,6 +147,23 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactNode {
       identityConsentRevoked.current = false;
     }
   }, [user]);
+  const switchRole = useCallback(async (targetRole: UserRole): Promise<SwitchRoleResult> => {
+    setIsSwitchingRole(true);
+    try {
+      const response = await apiClient.post<{
+        success: true;
+        data: { accessToken: string; user: AuthUser };
+      }>('/auth/switch-role', { targetRole });
+      const { accessToken, user: confirmedUser } = response.data.data;
+      setAccessToken(accessToken);
+      setUser(confirmedUser);
+      return { success: true, user: confirmedUser, accessToken };
+    } catch {
+      return { success: false };
+    } finally {
+      setIsSwitchingRole(false);
+    }
+  }, []);
   const startSignIn = useCallback(async (role: UserRole) => {
     if (pendingRolesRef.current.has(role)) return;
     pendingRolesRef.current.add(role);
@@ -254,11 +276,13 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactNode {
       errorCode,
       isLoggingOut,
       logoutErrorCode,
+      isSwitchingRole,
       googleConnection,
       isDisconnectingGoogle,
       disconnectGoogleErrorCode,
       pendingRoles,
       startSignIn,
+      switchRole,
       refresh,
       logout,
       disconnectGoogle,
@@ -269,11 +293,13 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactNode {
       errorCode,
       isLoggingOut,
       logoutErrorCode,
+      isSwitchingRole,
       googleConnection,
       isDisconnectingGoogle,
       disconnectGoogleErrorCode,
       pendingRoles,
       startSignIn,
+      switchRole,
       refresh,
       logout,
       disconnectGoogle,

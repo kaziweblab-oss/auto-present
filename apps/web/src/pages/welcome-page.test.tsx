@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@/i18n';
 import { apiClient } from '@/lib/api';
@@ -19,12 +20,14 @@ function LogoutControl() {
 function renderWelcome(extra?: ReactNode) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WelcomePage />
-        {extra}
-      </AuthProvider>
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <WelcomePage />
+          {extra}
+        </AuthProvider>
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -174,3 +177,35 @@ async function mockGet(url: string) {
     };
   return { data: {} };
 }
+
+/* ───── Cursor behavior ───── */
+
+describe('welcome page cursor behavior', () => {
+  beforeEach(() => resetAuthBootstrapForTests());
+
+  it('renders role sign-in buttons with cursor-pointer class', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(mockGet);
+    vi.spyOn(apiClient, 'post').mockRejectedValue(new Error('anonymous'));
+    renderWelcome();
+    await waitFor(() => expect(roleButton('Student')).toBeEnabled());
+    const captainBtn = roleButton('Captain');
+    expect(captainBtn.className).toContain('cursor-pointer');
+    expect(captainBtn.className).toContain('disabled:cursor-not-allowed');
+  });
+
+  it('sign-in buttons show not-allowed cursor when disabled', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(() =>
+      Promise.resolve({
+        data: { data: { sessionPresent: true, csrfToken: 'csrf', googleClientId: 'id' } },
+      }),
+    );
+    vi.spyOn(apiClient, 'post').mockImplementation(async (url) => {
+      if (url === '/auth/refresh') return { data: { data: { accessToken: 'token', user: null } } };
+      return { data: {} };
+    });
+    renderWelcome();
+    await screen.findByText('Auto Present');
+    const buttons = screen.getAllByRole('button', { name: /continue with google/i });
+    buttons.forEach((btn) => expect(btn.className).toContain('disabled:cursor-not-allowed'));
+  });
+});

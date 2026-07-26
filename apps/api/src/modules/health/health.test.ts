@@ -13,6 +13,7 @@ describe('health routes', () => {
       data: {
         status: 'ok',
         service: 'auto-present-api',
+        version: expect.any(String),
       },
       meta: {
         requestId: expect.any(String),
@@ -26,6 +27,7 @@ describe('health routes', () => {
       getLiveHealth: () => ({
         status: 'ok',
         service: 'auto-present-api',
+        version: '0.0.0',
         uptimeSeconds: 1,
       }),
       getReadyHealth: () => ({
@@ -52,6 +54,7 @@ describe('health routes', () => {
       getLiveHealth: () => ({
         status: 'ok',
         service: 'auto-present-api',
+        version: '0.0.0',
         uptimeSeconds: 1,
       }),
       getReadyHealth: () => ({

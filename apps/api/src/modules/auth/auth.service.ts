@@ -127,6 +127,8 @@ export class AuthService {
       name: payload.name ?? payload.email,
       ...(payload.picture ? { picture: payload.picture } : {}),
     });
+    if (user.status !== 'ACTIVE')
+      throw new AppError(401, 'ACCOUNT_SUSPENDED', 'Account is not active');
     const roles = await this.repository.authorizeRequestedRole(
       user._id,
       user.email,
@@ -152,6 +154,7 @@ export class AuthService {
     const session = await this.repository.createSession({
       userId: user._id,
       requestedRole,
+      loginRole: requestedRole,
       familyId,
       tokenHash: hashToken(raw),
       previousTokenHashes: [],
@@ -166,6 +169,26 @@ export class AuthService {
       csrfToken: opaqueToken(),
       expiresAt,
       requestedRole,
+    };
+  }
+  async switchRole(userId: string, sessionId: string, targetRole: UserRole) {
+    const session = await this.repository.findSessionById(sessionId);
+    if (!session || session.loginRole !== 'CAPTAIN')
+      throw new AppError(
+        403,
+        'ROLE_SWITCH_DENIED',
+        'Role switching is not available for this session',
+      );
+    const user = await this.repository.findUser(userId);
+    if (!user) throw new AppError(401, 'USER_NOT_FOUND', 'User not found');
+    if (user.status !== 'ACTIVE')
+      throw new AppError(401, 'ACCOUNT_SUSPENDED', 'Account is not active');
+    const updated = await this.repository.updateSessionRole(sessionId, targetRole);
+    if (!updated) throw new AppError(401, 'SESSION_NOT_FOUND', 'Session expired or not found');
+    return {
+      accessToken: await signAccessToken(userId, sessionId, user.roles),
+      csrfToken: opaqueToken(),
+      user: { ...user, requestedRole: targetRole, loginRole: session.loginRole },
     };
   }
   async refresh(raw: string) {
@@ -189,11 +212,13 @@ export class AuthService {
     if (!rotated) throw new AppError(401, 'REFRESH_TOKEN_REUSE', 'Session revoked for security');
     const user = await this.repository.findUser(String(session.userId));
     if (!user) throw new AppError(401, 'SESSION_EXPIRED', 'Session expired');
+    if (user.status !== 'ACTIVE')
+      throw new AppError(401, 'ACCOUNT_SUSPENDED', 'Account is not active');
     return {
       refreshToken: successor,
       accessToken: await signAccessToken(String(user._id), String(session._id), user.roles),
       csrfToken: opaqueToken(),
-      user: { ...user, requestedRole: session.requestedRole },
+      user: { ...user, requestedRole: session.requestedRole, loginRole: session.loginRole },
     };
   }
   async connection(userId: string) {

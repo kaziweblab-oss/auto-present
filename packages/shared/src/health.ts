@@ -4,6 +4,7 @@ export type DependencyStatus = 'connected' | 'disconnected';
 export interface LiveHealthData {
   status: 'ok';
   service: 'auto-present-api';
+  version: string;
   uptimeSeconds: number;
 }
 

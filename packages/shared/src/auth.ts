@@ -8,6 +8,7 @@ export interface AuthUser {
   avatarUrl?: string;
   roles: UserRole[];
   requestedRole?: UserRole;
+  loginRole?: UserRole;
 }
 export interface AuthTokensResponse {
   accessToken: string;

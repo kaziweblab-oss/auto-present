@@ -14,11 +14,17 @@ import type { HealthService } from './modules/health/health.service.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import type { AuthRepository } from './modules/auth/auth.repository.js';
 import type { AuthService } from './modules/auth/auth.service.js';
+import { createCaptainRouter } from './modules/captain/captain.routes.js';
+import type { CaptainService } from './modules/captain/captain.service.js';
+import { createStudentRouter } from './modules/student/student.routes.js';
+import type { StudentService } from './modules/student/student.service.js';
 
 export interface AppDependencies {
   healthService?: HealthService;
   authService?: AuthService;
   authRepository?: AuthRepository;
+  captainService?: CaptainService;
+  studentService?: StudentService;
 }
 
 function createCorsOptions(): CorsOptions {
@@ -61,6 +67,8 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     `${DEFAULT_API_PREFIX}/auth`,
     createAuthRouter(dependencies.authService, dependencies.authRepository),
   );
+  app.use(`${DEFAULT_API_PREFIX}/captain`, createCaptainRouter(dependencies.captainService));
+  app.use(`${DEFAULT_API_PREFIX}/student`, createStudentRouter(dependencies.studentService));
   app.use(
     `${DEFAULT_API_PREFIX}/health`,
     dependencies.healthService

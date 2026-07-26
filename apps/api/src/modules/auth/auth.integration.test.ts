@@ -612,4 +612,101 @@ describe('MongoDB-backed authentication', () => {
       Array.isArray(clearedCookies) ? clearedCookies.join(';') : String(clearedCookies ?? ''),
     ).toContain('ap_refresh=;');
   });
+
+  /* ───── Role switching ───── */
+
+  it('CAPTAIN-origin session can switch to STUDENT and back without revoking the session', async () => {
+    const user = await createUser();
+    const initial = await service.createSession(user, 'CAPTAIN', 'Browser', '127.0.0.1');
+    const stored = await repository.findSessionByToken(hashToken(initial.refreshToken));
+    const access = await signAccessToken(String(user._id), String(stored._id), []);
+    const csrfCookie = 'csrf-switch-1';
+
+    const switch1 = await request(createApp())
+      .post('/api/v1/auth/switch-role')
+      .set('Authorization', `Bearer ${access}`)
+      .set('Origin', 'http://localhost:5173')
+      .set('X-CSRF-Token', csrfCookie)
+      .set('Cookie', `ap_csrf=${csrfCookie}`)
+      .send({ targetRole: 'STUDENT' })
+      .expect(200);
+    expect(switch1.body.data.user.requestedRole).toBe('STUDENT');
+    expect(switch1.body.data.user.loginRole).toBe('CAPTAIN');
+    expect(typeof switch1.body.data.accessToken).toBe('string');
+    expect(typeof switch1.body.data.csrfToken).toBe('string');
+
+    const afterSwitch = await AuthSessionModel.findById(stored._id).lean();
+    expect(afterSwitch.requestedRole).toBe('STUDENT');
+    expect(afterSwitch.revokedAt).toBeFalsy();
+    expect(afterSwitch.loginRole).toBe('CAPTAIN');
+
+    const switch2 = await request(createApp())
+      .post('/api/v1/auth/switch-role')
+      .set('Authorization', `Bearer ${switch1.body.data.accessToken}`)
+      .set('Origin', 'http://localhost:5173')
+      .set('X-CSRF-Token', switch1.body.data.csrfToken)
+      .set('Cookie', `ap_csrf=${switch1.body.data.csrfToken}`)
+      .send({ targetRole: 'CAPTAIN' })
+      .expect(200);
+    expect(switch2.body.data.user.requestedRole).toBe('CAPTAIN');
+    expect(switch2.body.data.user.loginRole).toBe('CAPTAIN');
+
+    const afterBack = await AuthSessionModel.findById(stored._id).lean();
+    expect(afterBack.requestedRole).toBe('CAPTAIN');
+    expect(afterBack.revokedAt).toBeFalsy();
+  });
+
+  it('Student-origin session receives 403 when attempting to switch role', async () => {
+    const user = await createUser();
+    const initial = await service.createSession(user, 'STUDENT', 'Browser', '127.0.0.1');
+    const stored = await repository.findSessionByToken(hashToken(initial.refreshToken));
+    const access = await signAccessToken(String(user._id), String(stored._id), []);
+    const csrfCookie = 'csrf-switch-deny';
+
+    const response = await request(createApp())
+      .post('/api/v1/auth/switch-role')
+      .set('Authorization', `Bearer ${access}`)
+      .set('Origin', 'http://localhost:5173')
+      .set('X-CSRF-Token', csrfCookie)
+      .set('Cookie', `ap_csrf=${csrfCookie}`)
+      .send({ targetRole: 'CAPTAIN' })
+      .expect(403);
+    expect(response.body.error.code).toBe('ROLE_SWITCH_DENIED');
+  });
+
+  it('switched session can still refresh and bootstrap via the existing refresh token', async () => {
+    const user = await createUser();
+    const initial = await service.createSession(user, 'CAPTAIN', 'Browser', '127.0.0.1');
+    const stored = await repository.findSessionByToken(hashToken(initial.refreshToken));
+    const access = await signAccessToken(String(user._id), String(stored._id), []);
+    const csrfCookie = 'csrf-switch-post';
+
+    await request(createApp())
+      .post('/api/v1/auth/switch-role')
+      .set('Authorization', `Bearer ${access}`)
+      .set('Origin', 'http://localhost:5173')
+      .set('X-CSRF-Token', csrfCookie)
+      .set('Cookie', `ap_csrf=${csrfCookie}`)
+      .send({ targetRole: 'STUDENT' })
+      .expect(200);
+
+    const bootstrap = await request(createApp())
+      .get('/api/v1/auth/bootstrap')
+      .set('Origin', 'http://localhost:5173')
+      .set('Cookie', `ap_refresh=${initial.refreshToken}`)
+      .expect(200);
+    expect(bootstrap.body.data.sessionPresent).toBe(true);
+
+    const refreshResponse = await request(createApp())
+      .post('/api/v1/auth/refresh')
+      .set('Origin', 'http://localhost:5173')
+      .set('X-CSRF-Token', bootstrap.body.data.csrfToken)
+      .set('Cookie', [
+        `ap_refresh=${initial.refreshToken}`,
+        `ap_csrf=${bootstrap.body.data.csrfToken}`,
+      ])
+      .expect(200);
+    expect(refreshResponse.body.data.user.requestedRole).toBe('STUDENT');
+    expect(refreshResponse.body.data.user.loginRole).toBe('CAPTAIN');
+  });
 });

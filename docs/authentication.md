@@ -1,6 +1,6 @@
 # Authentication
 
-Phase 2 uses a backend-owned Google OAuth 2.0 authorization-code flow. Role selection is intent,
+The API uses a backend-owned Google OAuth 2.0 authorization-code flow. Role selection is intent,
 not authorization. Google `sub` is the immutable identity key and email must be verified.
 
 Identity requests only `openid email profile`. The backend creates a ten-minute, single-use,
@@ -9,7 +9,7 @@ cookie. Google tokens never enter frontend URLs. Student and Captain remain pend
 verification. Admin requires an active `AdminMembership`.
 
 Workspace consent is a separate authenticated incremental flow using `spreadsheets` and
-`drive.file`. Phase 2 does not call Sheets or Drive business APIs.
+`drive.file`.
 
 ## Session and Google connection actions
 

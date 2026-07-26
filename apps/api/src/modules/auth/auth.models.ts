@@ -37,6 +37,11 @@ const authSessionSchema = new mongoose.Schema(
       enum: ['ADMIN', 'CAPTAIN', 'STUDENT'],
       required: true,
     },
+    loginRole: {
+      type: String,
+      enum: ['ADMIN', 'CAPTAIN', 'STUDENT'],
+      required: true,
+    },
     familyId: { type: String, required: true, unique: true },
     tokenHash: { type: String, required: true, unique: true },
     previousTokenHashes: [{ type: String }],

@@ -1,11 +1,12 @@
 # Google Integration Plan
 
-Phase 2 implements separate identity and incremental Workspace OAuth foundations. Identity uses
+The API implements separate identity and incremental Workspace OAuth foundations. Identity uses
 `openid`, `email`, and `profile`. Workspace uses `spreadsheets` and `drive.file`, stores normalized
 grants, and stores refresh credentials with AES-256-GCM ciphertext, IV, authentication tag, and key
 version. An existing refresh token is preserved when Google omits a new one.
 
-No Sheets/Drive business API, Sheet verification, parsing, or attendance operation is included.
+Sheet verification, parsing, and attendance operations are implemented in the captain and student
+modules. These plan notes cover the design intentions that guided the implementation.
 
 ## Consent by role
 
@@ -14,7 +15,7 @@ No Sheets/Drive business API, Sheet verification, parsing, or attendance operati
   user-selected registered Spreadsheet. The backend verifies actual edit capability. The captain
   supplies the Sheet URL and class roll, and the roll must exist in the Sheet.
 - **Admin:** application authorization controls administrative access. Bootstrap uses
-  `INITIAL_ADMIN_EMAIL=kazitasinhossen@gmail.com`.
+  `INITIAL_ADMIN_EMAIL=admin@example.com`.
 
 The frontend sends authorization results to the backend but never communicates directly with
 Sheets or Drive.

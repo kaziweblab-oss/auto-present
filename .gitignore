@@ -11,6 +11,10 @@ coverage/
 
 *.log
 npm-debug.log*
+*.vitest-output*.txt
+test-output*.txt
+apps-tree.txt
+packages-tree.txt
 
 .DS_Store
 Thumbs.db

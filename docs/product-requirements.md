@@ -16,11 +16,11 @@ Roles:
 
 The product must prevent removal of the final active super admin.
 
-## Phase 1 outcomes
+## Current implementation status
 
-Phase 1 provides repository, API, web UI, localization, theming, health checks, test, and
-documentation foundations. The UI clearly marks unavailable actions and contains no fake Google
-login, dashboard data, or attendance flow.
+This repository corresponds to the Captain MVP phase. See the root README for the feature status
+table. Future capabilities (notifications, PWA, Tauri) are documented in the plan docs under
+`docs/`.
 
 ## Product constraints
 
@@ -31,7 +31,7 @@ login, dashboard data, or attendance flow.
 - The web client never calls Google APIs directly.
 - Original branding and reference images remain unchanged.
 
-## Deferred capabilities
+## Planned capabilities
 
-Google OAuth, token storage, Google Sheets/Drive calls, Sheet structure detection, notifications,
-attendance submission, PWA installability, and Tauri applications are later-phase work.
+Notifications, PWA installability, and Tauri applications are documented in their respective plan
+documents under `docs/` and are not yet implemented.

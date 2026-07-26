@@ -26,9 +26,8 @@ export class AuthRepository {
           displayName: identity.name,
           avatarUrl: identity.picture,
           emailVerified: true,
-          status: 'ACTIVE',
         },
-        $setOnInsert: { roles: [] },
+        $setOnInsert: { roles: [], status: 'ACTIVE' },
       },
       { upsert: true, new: true },
     ).lean();
@@ -64,6 +63,9 @@ export class AuthRepository {
   }
   createSession(data: Record<string, unknown>) {
     return AuthSessionModel.create(data);
+  }
+  findSessionById(sessionId: string) {
+    return AuthSessionModel.findById(sessionId).lean();
   }
   findSessionByToken(tokenHash: string) {
     return AuthSessionModel.findOne({ $or: [{ tokenHash }, { previousTokenHashes: tokenHash }] });
@@ -109,6 +111,13 @@ export class AuthRepository {
     })
       .sort({ lastActivityAt: -1 })
       .lean();
+  }
+  updateSessionRole(sessionId: string, targetRole: UserRole) {
+    return AuthSessionModel.findOneAndUpdate(
+      { _id: sessionId, revokedAt: { $exists: false }, expiresAt: { $gt: new Date() } },
+      { $set: { requestedRole: targetRole } },
+      { new: true },
+    ).lean();
   }
   findUser(id: string) {
     return UserModel.findById(id).lean();

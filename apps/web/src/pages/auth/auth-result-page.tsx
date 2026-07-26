@@ -71,6 +71,8 @@ export function AuthResultPage(): ReactNode {
       </section>
     );
   if (!user) return <Navigate to="/" replace />;
+  if (user.requestedRole === 'CAPTAIN') return <Navigate to="/captain/setup" replace />;
+  if (user.requestedRole === 'STUDENT') return <Navigate to="/student" replace />;
   if (user.roles.includes('ADMIN'))
     return (
       <section className="state-panel">
@@ -82,8 +84,7 @@ export function AuthResultPage(): ReactNode {
     <section className="state-panel pending-status-card">
       <p className="eyebrow">{t('auth.identityVerified')}</p>
       <h1>{t('auth.welcome', { name: user.displayName })}</h1>
-      <p>{t(user.requestedRole === 'CAPTAIN' ? 'auth.captainPending' : 'auth.studentPending')}</p>
-      {user.requestedRole === 'CAPTAIN' && <p>{t('auth.phase3Unavailable')}</p>}
+      <p>{t('auth.studentPending')}</p>
     </section>
   );
 }

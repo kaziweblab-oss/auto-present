@@ -1,5 +1,6 @@
 import type { LiveHealthData, ReadyHealthData } from '@auto-present/shared';
 import { getMongoConnectionStatus, type MongoConnectionStatus } from '../../database/mongodb.js';
+import { APP_VERSION } from '../../config/version.js';
 
 export interface HealthService {
   getLiveHealth(): LiveHealthData;
@@ -13,6 +14,7 @@ export function createHealthService(
     getLiveHealth: () => ({
       status: 'ok',
       service: 'auto-present-api',
+      version: APP_VERSION,
       uptimeSeconds: Math.floor(process.uptime()),
     }),
     getReadyHealth: () => {

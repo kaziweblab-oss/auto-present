@@ -167,7 +167,7 @@ export function CaptainPage(): ReactNode {
       <div className="state-panel">
         <p className="eyebrow">{t('captain.eyebrow')}</p>
         <h1>{t('captain.title')}</h1>
-        <p>{t('captain.description')}</p>
+        <p className="mt-2 leading-relaxed">{t('captain.description')}</p>
         {error && (
           <p className="menu-error" role="alert">
             {t(`captain.errors.${error}`, { defaultValue: t('captain.errors.generic') })}
@@ -175,7 +175,7 @@ export function CaptainPage(): ReactNode {
         )}
         {workspaceStatus !== 'CONNECTED' ? (
           <button
-            className="primary-action"
+            className="primary-action mt-4"
             type="button"
             disabled={workspacePending}
             aria-busy={workspacePending}
@@ -195,7 +195,7 @@ export function CaptainPage(): ReactNode {
             )}
           </button>
         ) : (
-          <form className="captain-form" onSubmit={(event) => void submit(event)}>
+          <form className="captain-form mt-4" onSubmit={(event) => void submit(event)}>
             <label>
               {t('captain.sheetUrl')}
               <input

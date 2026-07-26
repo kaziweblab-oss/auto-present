@@ -99,7 +99,7 @@ describe('Captain onboarding page', () => {
       }),
     ).not.toBeInTheDocument();
 
-    expect(screen.queryByLabelText('Cloned Google Sheet URL')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Google Sheet URL')).not.toBeInTheDocument();
   });
 
   it('prevents duplicate registration and shows a bilingual safe absent-roll error', async () => {
@@ -125,7 +125,7 @@ describe('Captain onboarding page', () => {
       </MemoryRouter>,
     );
     await screen.findByRole('button', { name: 'Verify Sheet' });
-    fireEvent.change(screen.getByLabelText('Cloned Google Sheet URL'), {
+    fireEvent.change(screen.getByLabelText('Google Sheet URL'), {
       target: {
         value: 'https://docs.google.com/spreadsheets/d/1abcdefghijklmnopqrstuvwxyzABCDE/edit',
       },

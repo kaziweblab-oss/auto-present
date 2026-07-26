@@ -2,7 +2,7 @@ import type { UserRole } from '@auto-present/shared';
 import { ArrowRight, LoaderCircle, ShieldCheck, UserRound, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/providers/auth-provider';
 
 const roles: UserRole[] = ['STUDENT', 'CAPTAIN', 'ADMIN'];
@@ -42,7 +42,12 @@ const roleStyle = {
 
 export function WelcomePage(): ReactNode {
   const { t } = useTranslation();
-  const { status, startSignIn, errorCode, pendingRoles } = useAuth();
+  const { status, startSignIn, errorCode, pendingRoles, user } = useAuth();
+
+  if (status === 'authenticated' && user) {
+    if (user.requestedRole === 'CAPTAIN') return <Navigate to="/captain/setup" replace />;
+    if (user.requestedRole === 'STUDENT') return <Navigate to="/student" replace />;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-180px)] px-4 py-10">

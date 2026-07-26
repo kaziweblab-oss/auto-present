@@ -2279,6 +2279,9 @@ nav a.active {
   padding: 1.5rem;
   overflow-x: hidden;
 }
+.app-content:focus {
+  outline: none;
+}
 
 .drawer-error {
   margin: 0;

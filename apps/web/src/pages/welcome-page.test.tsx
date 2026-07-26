@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@/i18n';
 import { apiClient } from '@/lib/api';
@@ -135,7 +135,6 @@ describe('role selection', () => {
                 email: 'captain@example.test',
                 displayName: 'Captain',
                 roles: [],
-                requestedRole: 'CAPTAIN',
               },
             },
           },
@@ -207,5 +206,96 @@ describe('welcome page cursor behavior', () => {
     await screen.findByText('Auto Present');
     const buttons = screen.getAllByRole('button', { name: /continue with google/i });
     buttons.forEach((btn) => expect(btn.className).toContain('disabled:cursor-not-allowed'));
+  });
+});
+
+/* ───── Authenticated redirect ───── */
+
+describe('authenticated user redirect', () => {
+  beforeEach(() => resetAuthBootstrapForTests());
+
+  function authMock(user: {
+    id: string;
+    email: string;
+    displayName: string;
+    roles: string[];
+    requestedRole?: string;
+  }) {
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: {
+        success: true,
+        data: {
+          sessionPresent: true,
+          csrfToken: 'csrf-authenticated',
+          googleClientId: 'public-client-id',
+        },
+      },
+    });
+    vi.spyOn(apiClient, 'post').mockImplementation(async (url) => {
+      if (url === '/auth/refresh')
+        return {
+          data: {
+            success: true,
+            data: { accessToken: 'access', csrfToken: 'csrf-refreshed', user },
+          },
+        };
+      return { data: {} };
+    });
+  }
+
+  it('redirects a student to /student', async () => {
+    authMock({
+      id: 'student',
+      email: 'student@example.test',
+      displayName: 'Student',
+      roles: [],
+      requestedRole: 'STUDENT',
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<WelcomePage />} />
+              <Route path="/student" element={<p>Student onboarding</p>} />
+            </Routes>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('Student onboarding')).toBeInTheDocument();
+  });
+
+  it('redirects a captain to /captain/setup', async () => {
+    authMock({
+      id: 'captain',
+      email: 'captain@example.test',
+      displayName: 'Captain',
+      roles: [],
+      requestedRole: 'CAPTAIN',
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<WelcomePage />} />
+              <Route path="/captain/setup" element={<p>Captain setup</p>} />
+            </Routes>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('Captain setup')).toBeInTheDocument();
+  });
+
+  it('stays on welcome page for anonymous users', async () => {
+    vi.spyOn(apiClient, 'get').mockImplementation(mockGet);
+    vi.spyOn(apiClient, 'post').mockRejectedValue(new Error('anonymous'));
+    renderWelcome();
+    await waitFor(() => expect(roleButton('Student')).toBeEnabled());
+    expect(screen.getByText('Auto Present')).toBeInTheDocument();
   });
 });

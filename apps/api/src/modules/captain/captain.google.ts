@@ -233,7 +233,7 @@ export class GoogleCaptainSheetReader implements CaptainSheetReader {
         tabReadRange(sheet.title, sheet.rowCount, sheet.columnCount),
       );
     valuesUrl.searchParams.set('majorDimension', 'ROWS');
-    valuesUrl.searchParams.set('valueRenderOption', 'FORMULA');
+    valuesUrl.searchParams.set('valueRenderOption', 'FORMATTED_VALUE');
     const values = visible.length
       ? await this.get<ValuesResponse>(valuesUrl, accessToken)
       : { valueRanges: [] };

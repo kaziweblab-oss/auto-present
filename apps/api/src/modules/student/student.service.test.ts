@@ -370,7 +370,7 @@ describe('StudentService', () => {
     });
   });
 
-  it('returns the correct student identity, subject list, and attendance summary for a valid Sheet snapshot', async () => {
+  it('returns the correct student identity, subject list, and attendance summary from summary columns', async () => {
     const subject = subjectStub();
     captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
     captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
@@ -396,9 +396,18 @@ describe('StudentService', () => {
           values: [
             ['Department', 'CST'],
             ['Semester', '5th'],
-            ['Name', 'Roll', '2024-01-01', '2024-01-02'],
-            ['Alice', '001', 'P', 'P'],
-            ['Bob', '007', 'P', 'A'],
+            [
+              'Name',
+              'Roll',
+              '2024-01-01',
+              '2024-01-02',
+              'Total Present',
+              'Total Absent',
+              'Total Class',
+              'Percentage',
+            ],
+            ['Alice', '001', 'P', 'P', '2', '0', '2', '100'],
+            ['Bob', '007', 'P', 'A', '1', '1', '2', '50'],
           ],
         },
       ],
@@ -419,6 +428,325 @@ describe('StudentService', () => {
           attendancePercentage: 50,
         },
       ],
+    });
+  });
+
+  it('recognizes multiline summary header values', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+    sheets.readSpreadsheet.mockResolvedValue({
+      spreadsheetId: 'sheet',
+      title: 'Attendance',
+      sheets: [
+        {
+          sheetId: 42,
+          title: 'CSE-101',
+          hidden: false,
+          values: [
+            ['Department', 'CST'],
+            ['Semester', '5th'],
+            [
+              'Name',
+              'Roll',
+              '2024-01-01',
+              '2024-01-02',
+              'Total\nPresent',
+              'Total\nAbsent',
+              'Total\nClass',
+              'Percentage',
+            ],
+            ['Bob', '007', 'P', 'A', '1', '1', '2', '50'],
+          ],
+        },
+      ],
+    });
+    const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+    const result = await service.dashboard(userId, sessionId);
+
+    expect(result.attendanceSummaries).toHaveLength(1);
+    expect(result.attendanceSummaries[0]).toMatchObject({
+      totalClasses: 2,
+      presentClasses: 1,
+      absentClasses: 1,
+      attendancePercentage: 50,
+    });
+  });
+
+  it('parses percentage with and without % sign', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+
+    async function testPercentage(percentageCell: unknown) {
+      sheets.readSpreadsheet.mockResolvedValue({
+        spreadsheetId: 'sheet',
+        title: 'Attendance',
+        sheets: [
+          {
+            sheetId: 42,
+            title: 'CSE-101',
+            hidden: false,
+            values: [
+              ['Department', 'CST'],
+              ['Semester', '5th'],
+              ['Name', 'Roll', 'Total Present', 'Total Absent', 'Total Class', 'Percentage'],
+              ['Bob', '007', '5', '2', '7', percentageCell],
+            ],
+          },
+        ],
+      });
+      const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+      const result = await service.dashboard(userId, sessionId);
+      return result.attendanceSummaries[0]!.attendancePercentage;
+    }
+
+    await expect(testPercentage('50')).resolves.toBe(50);
+    await expect(testPercentage('50%')).resolves.toBe(50);
+    await expect(testPercentage('33.3')).resolves.toBe(33);
+    await expect(testPercentage('33.3%')).resolves.toBe(33);
+    await expect(testPercentage('72.72727273')).resolves.toBe(73);
+  });
+
+  it('does not use P/A cells for dashboard calculation', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+
+    async function dashboardWithPASummary(pCells: string[], summaryPresent: string) {
+      sheets.readSpreadsheet.mockResolvedValue({
+        spreadsheetId: 'sheet',
+        title: 'Attendance',
+        sheets: [
+          {
+            sheetId: 42,
+            title: 'CSE-101',
+            hidden: false,
+            values: [
+              ['Department', 'CST'],
+              ['Semester', '5th'],
+              [
+                'Name',
+                'Roll',
+                '2024-01-01',
+                '2024-01-02',
+                'Total Present',
+                'Total Absent',
+                'Total Class',
+                'Percentage',
+              ],
+              ['Bob', '007', pCells[0]!, pCells[1]!, summaryPresent, '0', '2', '50'],
+            ],
+          },
+        ],
+      });
+      const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+      return (await service.dashboard(userId, sessionId)).attendanceSummaries[0]!.presentClasses;
+    }
+
+    await expect(dashboardWithPASummary(['P', 'A'], '1')).resolves.toBe(1);
+    await expect(dashboardWithPASummary(['P', 'P'], '0')).resolves.toBe(0);
+  });
+
+  it('reads formula-computed summary values via FORMATTED_VALUE without 422', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+    sheets.readSpreadsheet.mockResolvedValue({
+      spreadsheetId: 'sheet',
+      title: 'Attendance',
+      sheets: [
+        {
+          sheetId: 42,
+          title: 'CSE-101',
+          hidden: false,
+          values: [
+            ['Department', 'CST'],
+            ['Semester', '5th'],
+            [
+              'Name',
+              'Roll',
+              '2024-01-01',
+              '2024-01-02',
+              'Total Present',
+              'Total Absent',
+              'Total Class',
+              'Percentage',
+            ],
+            ['Bob', '007', 'P', 'A', 5, 2, 7, '71.43%'],
+          ],
+        },
+      ],
+    });
+    const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+    const result = await service.dashboard(userId, sessionId);
+
+    expect(result.attendanceSummaries).toHaveLength(1);
+    expect(result.attendanceSummaries[0]).toEqual({
+      subjectCode: 'CSE-101',
+      subjectName: 'Data Structures',
+      totalClasses: 7,
+      presentClasses: 5,
+      absentClasses: 2,
+      attendancePercentage: 71,
+    });
+  });
+
+  it('rejects dashboard when summary columns are missing', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+    sheets.readSpreadsheet.mockResolvedValue({
+      spreadsheetId: 'sheet',
+      title: 'Attendance',
+      sheets: [
+        {
+          sheetId: 42,
+          title: 'CSE-101',
+          hidden: false,
+          values: [
+            ['Department', 'CST'],
+            ['Semester', '5th'],
+            ['Name', 'Roll', 'Total Present', 'Total Absent', 'Total Class'],
+            ['Bob', '007', '1', '1', '2'],
+          ],
+        },
+      ],
+    });
+    const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+    await expect(service.dashboard(userId, sessionId)).rejects.toMatchObject({
+      code: 'SHEET_SUMMARY_COLUMNS_MISSING',
+    });
+  });
+
+  it('rejects dashboard when summary values are non-numeric', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+    sheets.readSpreadsheet.mockResolvedValue({
+      spreadsheetId: 'sheet',
+      title: 'Attendance',
+      sheets: [
+        {
+          sheetId: 42,
+          title: 'CSE-101',
+          hidden: false,
+          values: [
+            ['Department', 'CST'],
+            ['Semester', '5th'],
+            ['Name', 'Roll', 'Total Present', 'Total Absent', 'Total Class', 'Percentage'],
+            ['Bob', '007', 'abc', '1', '2', '50'],
+          ],
+        },
+      ],
+    });
+    const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+    await expect(service.dashboard(userId, sessionId)).rejects.toMatchObject({
+      code: 'SHEET_SUMMARY_VALUE_INVALID',
+    });
+  });
+
+  it('rejects dashboard when summary values are negative', async () => {
+    const subject = subjectStub();
+    captainRepo.findStudentClassRegistration.mockResolvedValue(classRegistration([subject]));
+    captainRepo.findCredential.mockResolvedValue({ status: 'CONNECTED' });
+    captainRepo.findUser.mockResolvedValue({
+      displayName: 'Bob',
+      email: 'bob@test.com',
+      status: 'ACTIVE',
+    });
+    repo.findActiveByUserId.mockResolvedValue({
+      roll: '007',
+      departmentKey: 'cst',
+      semesterKey: '5th',
+      shiftKey: 'morning',
+    });
+    sheets.readSpreadsheet.mockResolvedValue({
+      spreadsheetId: 'sheet',
+      title: 'Attendance',
+      sheets: [
+        {
+          sheetId: 42,
+          title: 'CSE-101',
+          hidden: false,
+          values: [
+            ['Department', 'CST'],
+            ['Semester', '5th'],
+            ['Name', 'Roll', 'Total Present', 'Total Absent', 'Total Class', 'Percentage'],
+            ['Bob', '007', '1', '1', '-2', '50'],
+          ],
+        },
+      ],
+    });
+    const service = new StudentService(repo as never, captainRepo as never, sheets as never);
+    await expect(service.dashboard(userId, sessionId)).rejects.toMatchObject({
+      code: 'SHEET_SUMMARY_VALUE_INVALID',
     });
   });
 

@@ -34,6 +34,123 @@ function identityKey(value: string): string {
   return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US');
 }
 
+const SUMMARY_COLUMN_ALIASES: Record<string, 'present' | 'absent' | 'total' | 'percentage'> = {
+  'total present': 'present',
+  'total absent': 'absent',
+  'total class': 'total',
+  percentage: 'percentage',
+};
+
+function normalizeHeaderText(value: unknown): string {
+  return normalizeCell(value).toLocaleLowerCase('en-US');
+}
+
+function findSummaryColumns(
+  headerValues: unknown[],
+  tabTitle: string,
+): {
+  presentColumn: number;
+  absentColumn: number;
+  totalColumn: number;
+  percentageColumn: number;
+} {
+  const found: Partial<Record<'present' | 'absent' | 'total' | 'percentage', number>> = {};
+
+  for (let column = 0; column < headerValues.length; column += 1) {
+    const normalized = normalizeHeaderText(headerValues[column]);
+    if (!normalized) continue;
+
+    const role = SUMMARY_COLUMN_ALIASES[normalized];
+    if (role && found[role] === undefined) {
+      found[role] = column;
+    }
+  }
+
+  const missing: string[] = [];
+  if (found.present === undefined) missing.push('Total Present');
+  if (found.absent === undefined) missing.push('Total Absent');
+  if (found.total === undefined) missing.push('Total Class');
+  if (found.percentage === undefined) missing.push('Percentage');
+
+  if (missing.length > 0) {
+    throw new AppError(
+      422,
+      'SHEET_SUMMARY_COLUMNS_MISSING',
+      `Summary columns not found for tab "${tabTitle}": ${missing.join(', ')}`,
+      missing.map((name) => ({
+        field: 'summaryColumn',
+        message: `Required column "${name}" is missing from the header row`,
+      })),
+    );
+  }
+
+  return {
+    presentColumn: found.present!,
+    absentColumn: found.absent!,
+    totalColumn: found.total!,
+    percentageColumn: found.percentage!,
+  };
+}
+
+function parseNumericValue(
+  value: unknown,
+  label: string,
+  subjectCode: string,
+  tabTitle: string,
+): number {
+  const raw = normalizeCell(value);
+  if (!raw) {
+    throw new AppError(
+      422,
+      'SHEET_SUMMARY_VALUE_INVALID',
+      `Summary value "${label}" is empty for subject "${subjectCode}" in tab "${tabTitle}"`,
+      [{ field: label, message: `The cell for "${label}" is empty or missing` }],
+    );
+  }
+
+  const parsed = Number.parseFloat(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new AppError(
+      422,
+      'SHEET_SUMMARY_VALUE_INVALID',
+      `Summary value "${label}" is invalid for subject "${subjectCode}" in tab "${tabTitle}": received "${raw}"`,
+      [{ field: label, message: `Expected a non-negative number, got "${raw}"` }],
+    );
+  }
+
+  return Math.round(parsed);
+}
+
+function parsePercentValue(
+  value: unknown,
+  label: string,
+  subjectCode: string,
+  tabTitle: string,
+): number {
+  const raw = normalizeCell(value);
+  if (!raw) {
+    throw new AppError(
+      422,
+      'SHEET_SUMMARY_VALUE_INVALID',
+      `Summary value "${label}" is empty for subject "${subjectCode}" in tab "${tabTitle}"`,
+      [{ field: label, message: `The cell for "${label}" is empty or missing` }],
+    );
+  }
+
+  const stripped = raw.replace(/%$/, '').trim();
+  const parsed = Number.parseFloat(stripped);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new AppError(
+      422,
+      'SHEET_SUMMARY_VALUE_INVALID',
+      `Summary value "${label}" is invalid for subject "${subjectCode}" in tab "${tabTitle}": received "${raw}"`,
+      [{ field: label, message: `Expected a numeric percentage, got "${raw}"` }],
+    );
+  }
+
+  return Math.round(parsed);
+}
+
 export class StudentService {
   constructor(
     private readonly studentRepository = new StudentRepository(),
@@ -267,35 +384,48 @@ export class StudentService {
         continue;
       }
 
-      const dateColumns: number[] = [];
-      for (let column = 0; column < headerValues.length; column += 1) {
-        if (normalizeSheetDate(headerValues[column])) {
-          dateColumns.push(column);
-        }
+      const summaryColumns = findSummaryColumns(headerValues, tab.title);
+
+      const studentRowData = tab.values[studentRow];
+      if (!studentRowData) {
+        throw new AppError(
+          422,
+          'SHEET_SUMMARY_VALUE_INVALID',
+          `Student row is empty for subject "${subject.subjectCode}" in tab "${tab.title}"`,
+          [{ field: 'studentRow', message: 'The student row contains no data' }],
+        );
       }
-
-      let total = 0;
-      let present = 0;
-      const normalizedPresentMarker = normalizeRoll(subject.presentMarker);
-
-      for (const column of dateColumns) {
-        const marker = normalizeCell(tab.values[studentRow]?.[column]);
-        if (!marker) continue;
-        total += 1;
-        if (normalizeRoll(marker) === normalizedPresentMarker) {
-          present += 1;
-        }
-      }
-
-      const absent = total - present;
-      const attendancePercentage = total > 0 ? Math.round((present / total) * 100) : 0;
+      const presentClasses = parseNumericValue(
+        studentRowData[summaryColumns.presentColumn],
+        'Total Present',
+        subject.subjectCode,
+        tab.title,
+      );
+      const absentClasses = parseNumericValue(
+        studentRowData[summaryColumns.absentColumn],
+        'Total Absent',
+        subject.subjectCode,
+        tab.title,
+      );
+      const totalClasses = parseNumericValue(
+        studentRowData[summaryColumns.totalColumn],
+        'Total Class',
+        subject.subjectCode,
+        tab.title,
+      );
+      const attendancePercentage = parsePercentValue(
+        studentRowData[summaryColumns.percentageColumn],
+        'Percentage',
+        subject.subjectCode,
+        tab.title,
+      );
 
       attendanceSummaries.push({
         subjectCode: subject.subjectCode,
         subjectName: subject.subjectName,
-        totalClasses: total,
-        presentClasses: present,
-        absentClasses: absent,
+        totalClasses,
+        presentClasses,
+        absentClasses,
         attendancePercentage,
       });
     }

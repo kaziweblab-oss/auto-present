@@ -23,6 +23,7 @@ export function StudentPage(): ReactNode {
   const [identityStatus, setIdentityStatus] = useState<StudentStatusResponse['identity'] | null>(
     null,
   );
+  const [editing, setEditing] = useState(false);
 
   const [fetchTrigger, setFetchTrigger] = useState(0);
 
@@ -51,6 +52,7 @@ export function StudentPage(): ReactNode {
   }, [authStatus, user?.requestedRole, fetchTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRegistered = (): void => {
+    setEditing(false);
     setLoading(true);
     setError(null);
     setFetchTrigger((c) => c + 1);
@@ -71,7 +73,50 @@ export function StudentPage(): ReactNode {
   if (!user) return <Navigate to="/" replace />;
   if (user.requestedRole !== 'STUDENT') return <Navigate to="/captain/setup" replace />;
 
-  if (identityStatus?.status === 'CONFIRMED') return <StudentDashboard />;
+  if (identityStatus?.status === 'CONFIRMED') {
+    if (editing) {
+      return (
+        <section className="max-w-xl mx-auto px-4 py-12">
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
+              {t('student.eyebrow')}
+            </p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {t('student.form.changeClass')}
+            </h1>
+            {error && (
+              <p className="text-red-600 dark:text-red-400 text-sm mt-4" role="alert">
+                {t(`student.errors.${error}`, { defaultValue: t('student.errors.generic') })}
+              </p>
+            )}
+            <StudentRegistrationForm onRegistered={handleRegistered} mode="update" />
+            <button
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              type="button"
+              onClick={() => setEditing(false)}
+            >
+              {t('student.form.cancel')}
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <div>
+        <div className="max-w-4xl mx-auto px-4 pt-6 flex justify-end">
+          <button
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-cyan-700 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-700 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 transition-colors cursor-pointer"
+            type="button"
+            onClick={() => setEditing(true)}
+          >
+            {t('student.dashboard.editDetails')}
+          </button>
+        </div>
+        <StudentDashboard />
+      </div>
+    );
+  }
 
   return (
     <section className="max-w-xl mx-auto px-4 py-12">

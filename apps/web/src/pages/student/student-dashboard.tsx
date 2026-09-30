@@ -54,7 +54,15 @@ export function StudentDashboard(): ReactNode {
     return (
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex flex-col items-center gap-3 py-16" role="alert">
-          <p className="text-red-600 dark:text-red-400">{t('student.dashboard.error')}</p>
+          <p className="text-red-600 dark:text-red-400">
+            {error === 'CLASS_REGISTRATION_NOT_FOUND' ||
+            error === 'STUDENT_REGISTRATION_REQUIRED'
+              ? t('student.dashboard.classChanged')
+              : t('student.dashboard.error')}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t(`student.errors.${error}`, { defaultValue: '' })}
+          </p>
           <button
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
             type="button"
@@ -70,9 +78,26 @@ export function StudentDashboard(): ReactNode {
   if (!dashboard) return null;
 
   const { student, subjects, attendanceSummaries } = dashboard;
+  const rollMissing =
+    subjects.length > 0 &&
+    attendanceSummaries.length > 0 &&
+    attendanceSummaries.every(
+      (summary) =>
+        summary.totalClasses === 0 &&
+        summary.presentClasses === 0 &&
+        summary.absentClasses === 0,
+    );
 
   return (
     <section className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {rollMissing && (
+        <div
+          className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-800 dark:text-amber-200"
+          role="alert"
+        >
+          {t('student.dashboard.rollNotFound')}
+        </div>
+      )}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">
           {t('student.dashboard.identity')}

@@ -165,7 +165,7 @@ describe('auth-aware header shell', () => {
       'href',
       '/captain/setup',
     );
-    expect(within(drawer).getByRole('menuitem', { name: 'Sheet Status' })).toHaveAttribute(
+    expect(within(drawer).getByRole('menuitem', { name: 'Update Sheet' })).toHaveAttribute(
       'href',
       '/captain/setup?changeSheet=true',
     );
@@ -176,7 +176,7 @@ describe('auth-aware header shell', () => {
     renderShell();
     const sidebar = await screen.findByRole('navigation', { name: 'Open navigation' });
     expect(within(sidebar).getByText('Captain Dashboard')).toBeInTheDocument();
-    expect(within(sidebar).getByText('Sheet Status')).toBeInTheDocument();
+    expect(within(sidebar).getByText('Update Sheet')).toBeInTheDocument();
   });
 
   /* ───── Student verified ───── */
@@ -439,7 +439,7 @@ describe('auth-aware header shell', () => {
     await screen.findByText('Welcome destination');
     const sidebar = screen.getByRole('navigation', { name: 'Open navigation' });
     expect(within(sidebar).queryByText('Captain Dashboard')).not.toBeInTheDocument();
-    expect(within(sidebar).queryByText('Sheet Status')).not.toBeInTheDocument();
+    expect(within(sidebar).queryByText('Update Sheet')).not.toBeInTheDocument();
   });
 
   /* ───── Role switching ───── */

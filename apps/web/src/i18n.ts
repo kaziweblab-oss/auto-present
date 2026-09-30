@@ -49,7 +49,8 @@ const resources = {
         captainDashboard: 'Captain Dashboard',
         markAttendance: 'Mark Attendance',
         dashboard: 'Dashboard',
-        sheetStatus: 'Sheet Status',
+        sheetStatus: 'Update Sheet',
+        updateSheet: 'Update Sheet',
         classInformation: 'Class Information',
         reports: 'Reports',
         analytics: 'Analytics',
@@ -151,6 +152,8 @@ const resources = {
         roll: 'Captain class roll',
         verify: 'Verify Sheet',
         verifying: 'Reading and verifying…',
+        update: 'Update Sheet',
+        updating: 'Updating Sheet…',
         department: 'Department',
         semester: 'Semester',
         shift: 'Shift',
@@ -253,8 +256,12 @@ const resources = {
           selectSemester: 'Select semester',
           selectShift: 'Select shift',
           submit: 'Verify identity',
+          updateSubmit: 'Update details',
           submitting: 'Verifying\u2026',
           retry: 'Retry',
+          cancel: 'Cancel',
+          editDetails: 'Edit details',
+          changeClass: 'Change class / roll',
           noOptions: 'No class registrations are available for student registration.',
         },
         confirmed: {
@@ -269,6 +276,11 @@ const resources = {
           noSubjects: 'No subjects have been registered for you yet.',
           attendanceSummary: 'Attendance Summary',
           noAttendance: 'No attendance records available yet.',
+          rollNotFound:
+            'Your roll was not found in the current class Sheet. Ask your captain if the Sheet was updated, then edit your details.',
+          classChanged:
+            'Your class registration is no longer active. The captain may have updated the Sheet. Please verify your details again.',
+          editDetails: 'Edit details',
           subjectColumn: 'Subject',
           totalClasses: 'Total',
           present: 'Present',
@@ -280,6 +292,10 @@ const resources = {
         },
         errors: {
           generic: 'Verification could not be completed. Please retry.',
+          CLASS_REGISTRATION_NOT_FOUND:
+            'Your class registration is no longer active. Please verify your details again.',
+          STUDENT_REGISTRATION_REQUIRED: 'Student registration is required. Please verify again.',
+          STUDENT_ROLL_NOT_FOUND: 'Roll not found in the class sheet.',
         },
       },
       footer: {
@@ -492,7 +508,8 @@ const resources = {
         captainDashboard: 'ক্যাপ্টেন ড্যাশবোর্ড',
         markAttendance: 'উপস্থিতি দিন',
         dashboard: 'ড্যাশবোর্ড',
-        sheetStatus: 'শিটের অবস্থা',
+        sheetStatus: 'শিট আপডেট করুন',
+        updateSheet: 'শিট আপডেট করুন',
         classInformation: 'ক্লাসের তথ্য',
         reports: 'রিপোর্ট',
         analytics: 'বিশ্লেষণ',
@@ -593,6 +610,8 @@ const resources = {
         roll: 'ক্যাপ্টেন ক্লাস রোল',
         verify: 'Sheet যাচাই করুন',
         verifying: 'পড়ে যাচাই করা হচ্ছে…',
+        update: 'শিট আপডেট করুন',
+        updating: 'শিট আপডেট হচ্ছে…',
         department: 'বিভাগ',
         semester: 'সেমিস্টার',
         shift: 'শিফট',
@@ -691,8 +710,12 @@ const resources = {
           selectSemester: 'সেমিস্টার নির্বাচন করুন',
           selectShift: 'শিফট নির্বাচন করুন',
           submit: 'পরিচয় যাচাই করুন',
+          updateSubmit: 'তথ্য আপডেট করুন',
           submitting: 'যাচাই করা হচ্ছে\u2026',
           retry: 'আবার চেষ্টা করুন',
+          cancel: 'বাতিল',
+          editDetails: 'তথ্য সম্পাদনা',
+          changeClass: 'ক্লাস / রোল পরিবর্তন',
           noOptions: 'শিক্ষার্থী নিবন্ধনের জন্য কোনো ক্লাস রেজিস্ট্রেশন উপলব্ধ নেই।',
         },
         confirmed: {
@@ -707,6 +730,11 @@ const resources = {
           noSubjects: 'আপনার জন্য এখনো কোনো বিষয় নিবন্ধিত হয়নি।',
           attendanceSummary: 'উপস্থিতির সারসংক্ষেপ',
           noAttendance: 'এখনো কোনো উপস্থিতি রেকর্ড নেই।',
+          rollNotFound:
+            'বর্তমান ক্লাস শিটে আপনার রোল পাওয়া যায়নি। ক্যাপ্টেন শিট আপডেট করেছে কিনা জিজ্ঞেস করুন, তারপর তথ্য সম্পাদনা করুন।',
+          classChanged:
+            'আপনার ক্লাস রেজিস্ট্রেশন আর সক্রিয় নেই। ক্যাপ্টেন শিট আপডেট করে থাকতে পারে। আবার যাচাই করুন।',
+          editDetails: 'তথ্য সম্পাদনা',
           subjectColumn: 'বিষয়',
           totalClasses: 'মোট',
           present: 'উপস্থিত',
@@ -718,6 +746,10 @@ const resources = {
         },
         errors: {
           generic: 'যাচাই সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।',
+          CLASS_REGISTRATION_NOT_FOUND:
+            'আপনার ক্লাস রেজিস্ট্রেশন আর সক্রিয় নেই। আবার যাচাই করুন।',
+          STUDENT_REGISTRATION_REQUIRED: 'শিক্ষার্থী নিবন্ধন প্রয়োজন। আবার যাচাই করুন।',
+          STUDENT_ROLL_NOT_FOUND: 'ক্লাস শিটে রোল পাওয়া যায়নি।',
         },
       },
       footer: {

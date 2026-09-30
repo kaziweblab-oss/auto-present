@@ -91,6 +91,7 @@ export function AppShell(): ReactNode {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [studentVerified, setStudentVerified] = useState<boolean | null>(null);
+  const [studentRoll, setStudentRoll] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const guestTriggerRef = useRef<HTMLButtonElement>(null);
   const guestPanelRef = useRef<HTMLDivElement>(null);
@@ -102,16 +103,21 @@ export function AppShell(): ReactNode {
   useEffect(() => {
     if (requestedRole !== 'STUDENT') {
       setStudentVerified(null);
+      setStudentRoll(null);
       return;
     }
     let active = true;
     apiClient
       .get<{ success: true; data: StudentStatusResponse }>('/student/status')
       .then((res) => {
-        if (active) setStudentVerified(res.data.data.identity.status === 'CONFIRMED');
+        if (!active) return;
+        setStudentVerified(res.data.data.identity.status === 'CONFIRMED');
+        setStudentRoll(res.data.data.identity.roll);
       })
       .catch(() => {
-        if (active) setStudentVerified(false);
+        if (!active) return;
+        setStudentVerified(false);
+        setStudentRoll(null);
       });
     return () => {
       active = false;
@@ -567,6 +573,11 @@ export function AppShell(): ReactNode {
             <div className="drawer-profile-info">
               <strong>{user.displayName}</strong>
               <span>{user.email}</span>
+              {requestedRole === 'STUDENT' && studentRoll && (
+                <span>
+                  {t('student.dashboard.rollLabel')}: {studentRoll}
+                </span>
+              )}
               <span>
                 {role && t(`roles.${role}`)}{' '}
                 <StatusBadge variant={badgetVariant} label={t(roleStatus)} />

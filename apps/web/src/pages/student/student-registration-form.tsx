@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api';
 
 interface StudentRegistrationFormProps {
   onRegistered(): void;
+  mode?: 'create' | 'update';
 }
 
 function errorCode(error: unknown): string {
@@ -18,7 +19,10 @@ function errorCode(error: unknown): string {
 const selectClasses =
   'w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-cyan-700 dark:focus:border-cyan-500 focus:ring-2 focus:ring-cyan-700/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors appearance-none';
 
-export function StudentRegistrationForm({ onRegistered }: StudentRegistrationFormProps): ReactNode {
+export function StudentRegistrationForm({
+  onRegistered,
+  mode = 'create',
+}: StudentRegistrationFormProps): ReactNode {
   const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -235,7 +239,13 @@ export function StudentRegistrationForm({ onRegistered }: StudentRegistrationFor
         aria-busy={submitting}
       >
         {submitting ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : null}
-        {t(submitting ? 'student.form.submitting' : 'student.form.submit')}
+        {t(
+          submitting
+            ? 'student.form.submitting'
+            : mode === 'update'
+              ? 'student.form.updateSubmit'
+              : 'student.form.submit',
+        )}
       </button>
     </form>
   );

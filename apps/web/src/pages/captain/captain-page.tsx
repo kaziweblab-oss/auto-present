@@ -157,6 +157,19 @@ export function CaptainPage(): ReactNode {
             </strong>
           </div>
 
+          <button
+            className="secondary-action mt-4"
+            type="button"
+            onClick={() => {
+              setError(null);
+              setEditingRegistration(true);
+              setSearchParams({ changeSheet: 'true' }, { replace: true });
+            }}
+          >
+            <Sheet aria-hidden="true" />
+            {t('captain.update')}
+          </button>
+
           <CaptainAttendanceForm subjects={registration.subjects} />
         </div>
       </section>
@@ -221,7 +234,15 @@ export function CaptainPage(): ReactNode {
               ) : (
                 <Sheet aria-hidden="true" />
               )}
-              {t(submitting ? 'captain.verifying' : 'captain.verify')}
+              {t(
+                submitting
+                  ? registration && editingRegistration
+                    ? 'captain.updating'
+                    : 'captain.verifying'
+                  : registration && editingRegistration
+                    ? 'captain.update'
+                    : 'captain.verify',
+              )}
             </button>
 
             {registration && editingRegistration && (

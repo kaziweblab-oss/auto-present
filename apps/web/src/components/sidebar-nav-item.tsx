@@ -5,14 +5,17 @@ interface SidebarNavItemProps {
   to: string;
   icon: ReactNode;
   label: string;
+  active?: boolean;
 }
 
-export function SidebarNavItem({ to, icon, label }: SidebarNavItemProps): ReactNode {
+export function SidebarNavItem({ to, icon, label, active }: SidebarNavItemProps): ReactNode {
   return (
     <NavLink
       to={to}
       end
-      className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
+      className={({ isActive }) =>
+        `sidebar-nav-item${(active ?? isActive) ? ' active' : ''}`
+      }
     >
       {icon}
       <span>{label}</span>

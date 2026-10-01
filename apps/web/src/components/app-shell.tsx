@@ -27,7 +27,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { DrawerNavItem, DrawerPreviewItem } from '@/components/drawer-nav-item';
 import { NavigationEffects } from '@/components/navigation-effects';
 import { PreviewDialog } from '@/components/preview-dialog';
@@ -73,6 +73,11 @@ export function AppShell(): ReactNode {
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isEditingSheet =
+    location.pathname === '/captain/setup' && searchParams.get('changeSheet') === 'true';
+  const isCaptainDashboard =
+    location.pathname === '/captain/setup' && searchParams.get('changeSheet') !== 'true';
   const publicRoutes = [
     '/',
     '/how-to-login',
@@ -426,11 +431,13 @@ export function AppShell(): ReactNode {
                 to="/captain/setup"
                 icon={<Shield />}
                 label={t('menu.captainDashboard')}
+                active={isCaptainDashboard}
               />
               <SidebarNavItem
                 to="/captain/setup?changeSheet=true"
                 icon={<Shield />}
                 label={t('menu.sheetStatus')}
+                active={isEditingSheet}
               />
             </>
           )}

@@ -1733,11 +1733,13 @@ nav a.active {
   z-index: 30;
   display: flex;
   flex-direction: column;
-  width: 240px;
+  width: 220px;
   height: 100vh;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 }
 
 .app-sidebar-header {
@@ -1766,7 +1768,9 @@ nav a.active {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  padding: 0.75rem;
+  padding: 0.65rem;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 .app-sidebar-footer {
@@ -1779,10 +1783,11 @@ nav a.active {
 
 .app-main-area {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 220px;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow-x: clip;
 }
 
 .app-header {
@@ -1864,13 +1869,15 @@ nav a.active {
 .sidebar-nav-item {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.75rem;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 0.55rem;
   color: var(--sidebar-text);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
   cursor: pointer;
   transition:
     background-color 150ms ease,
@@ -1964,17 +1971,19 @@ nav a.active {
 .sidebar-preview-item {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.75rem;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 0.55rem;
   border: 0;
   background: transparent;
   color: var(--sidebar-text-muted);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
   width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
   transition: background-color 150ms ease;
 }
 
@@ -2033,11 +2042,11 @@ nav a.active {
 
 .coming-soon-badge {
   margin-left: auto;
-  padding: 0.15rem 0.45rem;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
   background: rgba(245, 158, 11, 0.1);
   color: #f59e0b;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
